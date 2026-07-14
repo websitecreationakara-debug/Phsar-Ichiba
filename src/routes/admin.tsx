@@ -106,22 +106,19 @@ function AdminLayout() {
           title="Phsar Ichiba"
           className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}
         >
-          <span
-            className={cn(
-              "flex shrink-0 items-center justify-center rounded-full",
-              collapsed ? "p-1.5" : "p-4",
-            )}
-            style={{
-              background:
-                "radial-gradient(circle, rgba(251,247,236,0.9) 0%, rgba(251,247,236,0.45) 60%, rgba(251,247,236,0) 78%)",
-            }}
-          >
-            <img
-              src="/brand/icon-mark.png"
-              alt="Phsar Ichiba"
-              className={cn("object-contain", collapsed ? "h-9 w-9" : "h-16 w-16")}
-            />
-          </span>
+          {collapsed ? (
+            <span
+              className="flex shrink-0 items-center justify-center rounded-full p-1.5"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(251,247,236,0.9) 0%, rgba(251,247,236,0.45) 60%, rgba(251,247,236,0) 78%)",
+              }}
+            >
+              <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-9 w-9 object-contain" />
+            </span>
+          ) : (
+            <img src="/brand/wordmark-dark.png" alt="Phsar Ichiba" className="h-16 w-auto object-contain" />
+          )}
         </Link>
         <nav className="w-full flex-1 space-y-1">
           {visibleNav.map((n) => {
