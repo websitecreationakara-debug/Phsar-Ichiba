@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Truck, Leaf, ShieldCheck, Clock } from 'lucide-react'
 import { useHeroSlides, useCategories, useProducts } from '@/hooks/use-products'
-import { useI18n, type I18nKey } from '@/lib/i18n'
+import { useI18n, localizedCategoryName, type I18nKey } from '@/lib/i18n'
 import { HeroCarousel } from '@/components/hero-carousel'
 import { ProductCard } from '@/components/product-card'
 import { categoryArt } from '@/lib/category-art'
@@ -19,7 +19,7 @@ function Home() {
   const { data: slides } = useHeroSlides()
   const { data: categories } = useCategories()
   const { data: products } = useProducts()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const categoryById = new Map((categories ?? []).map((c) => [c.id, c]))
   const onSale = (products ?? []).filter((p) => p.sale_price != null && p.sale_price < p.price)
@@ -59,7 +59,9 @@ function Home() {
                 >
                   <Icon className="h-7 w-7 text-white" strokeWidth={1.5} />
                 </span>
-                <span className="font-display text-sm font-semibold text-ink">{c.name}</span>
+                <span className="font-display text-sm font-semibold text-ink">
+                  {localizedCategoryName(c, locale)}
+                </span>
               </Link>
             )
           })}

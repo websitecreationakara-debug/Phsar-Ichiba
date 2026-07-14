@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import { useProducts, useCategories } from '@/hooks/use-products'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, localizedCategoryName } from '@/lib/i18n'
 import { ProductCard } from '@/components/product-card'
 import { categoryArt } from '@/lib/category-art'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,7 @@ function Shop() {
   const { category, q } = Route.useSearch()
   const { data: products, isLoading } = useProducts()
   const { data: categories } = useCategories()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const categoryById = new Map((categories ?? []).map((c) => [c.id, c]))
   const activeCategory = categories?.find((c) => c.slug === category)
@@ -41,7 +41,11 @@ function Shop() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink">
-            {activeCategory ? activeCategory.name : q ? t('shop.resultsFor', { q }) : t('shop.allProducts')}
+            {activeCategory
+              ? localizedCategoryName(activeCategory, locale)
+              : q
+                ? t('shop.resultsFor', { q })
+                : t('shop.allProducts')}
           </h1>
           <p className="mt-1 text-sm text-ink-soft">
             {isLoading ? t('shop.loading') : t('shop.itemCount', { n: filtered.length })}
@@ -79,7 +83,7 @@ function Shop() {
                     )}
                   >
                     <Icon className="h-4 w-4" />
-                    {c.name}
+                    {localizedCategoryName(c, locale)}
                   </Link>
                 </li>
               )

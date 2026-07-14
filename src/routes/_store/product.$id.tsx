@@ -7,7 +7,7 @@ import { getProductRating, rateProduct } from '@/data/ratings'
 import { useCart } from '@/hooks/use-cart'
 import { useWishlist } from '@/hooks/use-wishlist'
 import { useAuth } from '@/hooks/use-auth'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, localizedCategoryName } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice, cn } from '@/lib/utils'
 import type { ProductVariation } from '@/lib/types'
@@ -22,7 +22,7 @@ function ProductDetail() {
   const { add } = useCart()
   const { has, toggle } = useWishlist()
   const { user } = useAuth()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const queryClient = useQueryClient()
 
   const [qty, setQty] = useState(1)
@@ -82,7 +82,7 @@ function ProductDetail() {
         {category && (
           <>
             <Link to="/shop" search={{ category: category.slug }} className="hover:underline">
-              {category.name}
+              {localizedCategoryName(category, locale)}
             </Link>
             <ChevronRight className="h-3 w-3" />
           </>

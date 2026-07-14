@@ -10,6 +10,17 @@ export const LOCALES: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
 ];
 
+// Categories only have one customer-facing name field (Japanese, from the
+// WooCommerce import) plus an admin-only `name_en`. Reuse `name_en` for the
+// storefront's English mode too, falling back to the Japanese name when a
+// category hasn't been translated yet.
+export function localizedCategoryName(
+  c: { name: string; name_en?: string | null },
+  locale: Locale,
+): string {
+  return locale === "en" ? c.name_en || c.name : c.name;
+}
+
 const ja = {
   "root.title": "プサール・イチバ — フレッシュマーケット",
   "root.description": "新鮮な野菜・果物・日用食品を毎日収穫し、迅速にお届けします。",
@@ -65,8 +76,7 @@ const ja = {
   "cart.title": "カート",
   "cart.orderSummary": "注文内容",
   "cart.subtotal": "小計",
-  "cart.freeDeliveryRemaining": "あと{amount}で送料無料になります。",
-  "cart.freeDeliveryUnlocked": "送料無料になりました！🎉",
+  "cart.deliveryFeeNotice": "配送料 $2.50 がチェックアウト時に加算されます。",
   "cart.total": "合計",
   "cart.priceEach": "単価 {price}",
 
@@ -187,8 +197,7 @@ const en: Dict = {
   "cart.title": "Your basket",
   "cart.orderSummary": "Order summary",
   "cart.subtotal": "Subtotal",
-  "cart.freeDeliveryRemaining": "Add {amount} more for free delivery.",
-  "cart.freeDeliveryUnlocked": "You've unlocked free delivery! 🎉",
+  "cart.deliveryFeeNotice": "A $2.50 delivery fee is added at checkout.",
   "cart.total": "Total",
   "cart.priceEach": "{price} each",
 

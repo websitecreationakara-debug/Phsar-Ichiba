@@ -4,7 +4,7 @@ import { Search, Heart, User, ShoppingBasket, Menu, X, Languages } from "lucide-
 import { useCategories } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { useI18n, LOCALES } from "@/lib/i18n";
+import { useI18n, LOCALES, localizedCategoryName } from "@/lib/i18n";
 import { categoryArt } from "@/lib/category-art";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +103,7 @@ export function SiteHeader() {
               key={c.id}
               to="/shop"
               search={{ category: c.slug }}
-              label={c.name}
+              label={localizedCategoryName(c, locale)}
               icon={<Icon className="h-3.5 w-3.5" />}
             />
           );
@@ -132,7 +132,7 @@ export function SiteHeader() {
               className="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-leaf-100"
               onClick={() => setMenuOpen(false)}
             >
-              {c.name}
+              {localizedCategoryName(c, locale)}
             </Link>
           ))}
           <Link to="/account" className="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-leaf-100" onClick={() => setMenuOpen(false)}>
