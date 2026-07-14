@@ -107,13 +107,20 @@ function AdminLayout() {
           className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}
         >
           <span
-            className="flex shrink-0 items-center justify-center rounded-full p-2.5"
+            className={cn(
+              "flex shrink-0 items-center justify-center rounded-full",
+              collapsed ? "p-1.5" : "p-4",
+            )}
             style={{
               background:
                 "radial-gradient(circle, rgba(251,247,236,0.9) 0%, rgba(251,247,236,0.45) 60%, rgba(251,247,236,0) 78%)",
             }}
           >
-            <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-8 w-8 object-contain" />
+            <img
+              src="/brand/icon-mark.png"
+              alt="Phsar Ichiba"
+              className={cn("object-contain", collapsed ? "h-9 w-9" : "h-16 w-16")}
+            />
           </span>
         </Link>
         <nav className="w-full flex-1 space-y-1">
