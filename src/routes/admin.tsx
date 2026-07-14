@@ -17,7 +17,6 @@ import {
   ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  Sprout,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -107,14 +106,7 @@ function AdminLayout() {
           title="Phsar Ichiba"
           className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-leaf-500">
-            <Sprout className="h-5 w-5 text-white" strokeWidth={2} />
-          </span>
-          {!collapsed && (
-            <span className="font-display text-base font-bold leading-tight text-leaf-50">
-              Phsar Ichiba
-            </span>
-          )}
+          <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-10 w-10 shrink-0 object-contain" />
         </Link>
         <nav className="w-full flex-1 space-y-1">
           {visibleNav.map((n) => {

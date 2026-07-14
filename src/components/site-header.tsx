@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, Heart, User, ShoppingBasket, Menu, X, Sprout, Languages } from "lucide-react";
+import { Search, Heart, User, ShoppingBasket, Menu, X, Languages } from "lucide-react";
 import { useCategories } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -43,15 +43,7 @@ export function SiteHeader() {
         </button>
 
         <Link to="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-leaf-600 text-white">
-            <Sprout className="h-5 w-5" strokeWidth={2} />
-          </span>
-          <span className="font-display text-lg font-bold leading-none text-leaf-800">
-            Phsar Ichiba
-            <span className="block text-[10px] font-medium tracking-wide text-ink-soft">
-              THE MARKET
-            </span>
-          </span>
+          <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-12 w-12 object-contain" />
         </Link>
 
         <form onSubmit={submitSearch} className="mx-auto hidden max-w-md flex-1 md:block">

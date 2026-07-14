@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Sprout, MapPin, Phone, Mail } from "lucide-react";
+import { MapPin, Phone, Mail } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export function SiteFooter() {
@@ -10,10 +10,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
         <div>
           <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-leaf-500">
-              <Sprout className="h-4 w-4" />
-            </span>
-            <span className="font-display text-base font-bold">Phsar Ichiba</span>
+            <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-10 w-10 object-contain" />
           </Link>
           <p className="mt-3 text-sm text-leaf-200">{t("footer.tagline")}</p>
         </div>
