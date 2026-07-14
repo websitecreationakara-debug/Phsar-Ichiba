@@ -93,11 +93,11 @@ function AdminLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-leaf-900">
+    <div className="flex min-h-screen bg-leaf-100">
       <Toaster theme="light" richColors position="top-right" />
       <aside
         className={cn(
-          "flex shrink-0 flex-col gap-8 border-r border-leaf-800 transition-[width] duration-200",
+          "flex shrink-0 flex-col gap-8 border-r border-leaf-200 bg-leaf-100 transition-[width] duration-200",
           collapsed ? "w-20 items-center p-3" : "w-64 p-6",
         )}
       >
@@ -107,17 +107,9 @@ function AdminLayout() {
           className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}
         >
           {collapsed ? (
-            <span
-              className="flex shrink-0 items-center justify-center rounded-full p-1.5"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(251,247,236,0.9) 0%, rgba(251,247,236,0.45) 60%, rgba(251,247,236,0) 78%)",
-              }}
-            >
-              <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-9 w-9 object-contain" />
-            </span>
+            <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-10 w-10 object-contain" />
           ) : (
-            <img src="/brand/wordmark-dark.png" alt="Phsar Ichiba" className="h-16 w-auto object-contain" />
+            <img src="/brand/wordmark.png" alt="Phsar Ichiba" className="h-14 w-auto object-contain" />
           )}
         </Link>
         <nav className="w-full flex-1 space-y-1">
@@ -134,7 +126,7 @@ function AdminLayout() {
                   collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
                   active
                     ? "bg-leaf-600 text-white"
-                    : "text-leaf-100/70 hover:bg-leaf-800 hover:text-leaf-50",
+                    : "text-leaf-800/70 hover:bg-leaf-200 hover:text-leaf-900",
                 )}
               >
                 <n.icon className="h-4 w-4 shrink-0" />
@@ -158,7 +150,7 @@ function AdminLayout() {
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             className={cn(
-              "flex w-full items-center rounded-lg text-xs font-medium text-leaf-100/70 transition-colors hover:bg-leaf-800 hover:text-leaf-50",
+              "flex w-full items-center rounded-lg text-xs font-medium text-leaf-800/70 transition-colors hover:bg-leaf-200 hover:text-leaf-900",
               collapsed ? "justify-center p-2.5" : "gap-2 px-3 py-2.5",
             )}
           >
@@ -173,7 +165,7 @@ function AdminLayout() {
             to="/"
             title={collapsed ? "Back to storefront" : undefined}
             className={cn(
-              "flex items-center rounded-lg text-xs text-leaf-100/60 transition-colors hover:bg-leaf-800 hover:text-leaf-50",
+              "flex items-center rounded-lg text-xs text-leaf-800/60 transition-colors hover:bg-leaf-200 hover:text-leaf-900",
               collapsed ? "justify-center p-2.5" : "gap-2 px-3 py-2.5",
             )}
           >
