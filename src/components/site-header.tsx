@@ -22,7 +22,9 @@ export function SiteHeader() {
     navigate({ to: "/shop", search: (prev) => ({ ...prev, q: query || undefined }) });
   };
 
-  const toggleLocale = () => setLocale(locale === "ja" ? "en" : "ja");
+  const targetLocale = locale === "ja" ? "en" : "ja";
+  const targetLabel = LOCALES.find((l) => l.code === targetLocale)?.label;
+  const toggleLocale = () => setLocale(targetLocale);
 
   return (
     <header className="sticky top-0 z-40 border-b border-leaf-100 bg-cream/95 backdrop-blur">
@@ -68,11 +70,12 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={toggleLocale}
-            className="hidden items-center gap-1 rounded-full px-2.5 py-2 text-xs font-semibold text-ink-soft hover:bg-leaf-100 sm:flex"
+            className="flex items-center gap-1 rounded-full border border-leaf-200 px-2.5 py-2 text-xs font-semibold text-ink-soft hover:bg-leaf-100"
             aria-label={t("a11y.switchLanguage")}
+            title={t("a11y.switchLanguage")}
           >
             <Languages className="h-4 w-4" />
-            {LOCALES.find((l) => l.code === locale)?.label}
+            <span className="hidden sm:inline">{targetLabel}</span>
           </button>
           <Link
             to="/shop"
@@ -149,7 +152,7 @@ export function SiteHeader() {
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-ink hover:bg-leaf-100"
           >
             <Languages className="h-4 w-4" />
-            {LOCALES.find((l) => l.code === locale)?.label}
+            {targetLabel}
           </button>
         </nav>
       )}
