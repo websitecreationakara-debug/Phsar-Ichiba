@@ -44,7 +44,7 @@ function Home() {
 
       <section className="mt-12">
         <h2 className="font-display text-2xl font-bold text-ink">{t('home.shopByCategory')}</h2>
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
           {(categories ?? []).map((c) => {
             const { icon: Icon, gradient } = categoryArt(c.slug)
             return (
@@ -52,7 +52,7 @@ function Home() {
                 key={c.id}
                 to="/shop"
                 search={{ category: c.slug }}
-                className="group flex flex-col items-center gap-3 rounded-2xl border border-leaf-100 bg-white p-5 text-center transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group flex w-28 shrink-0 flex-col items-center gap-3 rounded-2xl border border-leaf-100 bg-white p-4 text-center transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <span
                   className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${gradient} transition group-hover:scale-105`}
