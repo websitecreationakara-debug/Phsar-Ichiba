@@ -84,6 +84,8 @@ const ja = {
   "account.haveAccount": "すでにアカウントをお持ちの方は ",
   "account.signUp": "新規登録",
   "account.signOut": "ログアウト",
+  "account.continueWithGoogle": "Googleでログイン",
+  "account.orDivider": "または",
 
   "footer.tagline": "新鮮な野菜・果物・日用食品を毎日お届けします。",
   "footer.shop": "ショップ",
@@ -186,6 +188,8 @@ const en: Dict = {
   "account.haveAccount": "Already have an account? ",
   "account.signUp": "Sign up",
   "account.signOut": "Sign out",
+  "account.continueWithGoogle": "Continue with Google",
+  "account.orDivider": "or",
 
   "footer.tagline": "Fresh vegetables, fruit, and everyday groceries — picked daily, delivered fast.",
   "footer.shop": "Shop",

@@ -34,7 +34,7 @@ const config = defineConfig({
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     clientCloudflareWorkersStub,
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({ start: { entry: './start.ts' } }),
     viteReact(),
   ],
 })
