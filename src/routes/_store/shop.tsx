@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
 import { useProducts, useCategories } from '@/hooks/use-products'
 import { useI18n, localizedCategoryName } from '@/lib/i18n'
 import { ProductCard } from '@/components/product-card'
@@ -53,60 +52,44 @@ function Shop() {
         </div>
       </div>
 
-      <div className="flex gap-8">
-        <aside className="hidden w-48 shrink-0 md:block">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
-            <SlidersHorizontal className="h-4 w-4" /> {t('shop.categories')}
-          </h2>
-          <ul className="space-y-1">
-            <li>
-              <Link
-                to="/shop"
-                className={cn(
-                  'block rounded-lg px-3 py-2 text-sm font-medium text-ink-soft hover:bg-leaf-100',
-                  !category && 'bg-leaf-100 text-leaf-800',
-                )}
-              >
-                {t('shop.allProducts')}
-              </Link>
-            </li>
-            {(categories ?? []).map((c) => {
-              const { icon: Icon } = categoryArt(c.slug)
-              return (
-                <li key={c.id}>
-                  <Link
-                    to="/shop"
-                    search={{ category: c.slug }}
-                    className={cn(
-                      'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-soft hover:bg-leaf-100',
-                      category === c.slug && 'bg-leaf-100 text-leaf-800',
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {localizedCategoryName(c, locale)}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          {!isLoading && filtered.length === 0 && (
-            <p className="rounded-2xl border border-leaf-100 bg-white p-8 text-center text-sm text-ink-soft">
-              {q ? t('shop.noProductsFor', { q }) : t('shop.noProducts')}
-            </p>
+      <nav className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        <Link
+          to="/shop"
+          className={cn(
+            'flex shrink-0 items-center gap-1.5 rounded-full border border-leaf-200 px-3.5 py-2 text-sm font-medium text-ink-soft transition hover:bg-leaf-100 hover:text-leaf-800',
+            !category && 'border-leaf-600 bg-leaf-100 text-leaf-800',
           )}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {filtered.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                categorySlug={categoryById.get(p.category_id ?? '')?.slug}
-              />
-            ))}
-          </div>
-        </div>
+        >
+          {t('shop.allProducts')}
+        </Link>
+        {(categories ?? []).map((c) => {
+          const { icon: Icon } = categoryArt(c.slug)
+          return (
+            <Link
+              key={c.id}
+              to="/shop"
+              search={{ category: c.slug }}
+              className={cn(
+                'flex shrink-0 items-center gap-1.5 rounded-full border border-leaf-200 px-3.5 py-2 text-sm font-medium text-ink-soft transition hover:bg-leaf-100 hover:text-leaf-800',
+                category === c.slug && 'border-leaf-600 bg-leaf-100 text-leaf-800',
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {localizedCategoryName(c, locale)}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {!isLoading && filtered.length === 0 && (
+        <p className="rounded-2xl border border-leaf-100 bg-white p-8 text-center text-sm text-ink-soft">
+          {q ? t('shop.noProductsFor', { q }) : t('shop.noProducts')}
+        </p>
+      )}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {filtered.map((p) => (
+          <ProductCard key={p.id} product={p} categorySlug={categoryById.get(p.category_id ?? '')?.slug} />
+        ))}
       </div>
     </div>
   )
