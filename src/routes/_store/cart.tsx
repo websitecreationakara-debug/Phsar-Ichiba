@@ -119,6 +119,12 @@ function CartPage() {
             <span className="font-display text-base font-bold text-ink">{t('cart.total')}</span>
             <span className="font-display text-xl font-bold text-leaf-700">{formatPrice(subtotal)}</span>
           </div>
+          <Link
+            to="/checkout"
+            className="mt-4 block w-full rounded-full bg-leaf-600 py-3 text-center text-sm font-semibold text-white transition hover:bg-leaf-700"
+          >
+            {t('cart.proceedToCheckout')}
+          </Link>
         </aside>
       </div>
     </div>

@@ -21,7 +21,9 @@ import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
+import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
+import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
 import { Route as StoreCartRouteImport } from './routes/_store/cart'
 import { Route as StoreAccountRouteImport } from './routes/_store/account'
 import { Route as StoreProductIdRouteImport } from './routes/_store/product.$id'
@@ -85,9 +87,19 @@ const AdminBannersRoute = AdminBannersRouteImport.update({
   path: '/banners',
   getParentRoute: () => AdminRoute,
 } as any)
+const StoreThankYouRoute = StoreThankYouRouteImport.update({
+  id: '/thank-you',
+  path: '/thank-you',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreShopRoute = StoreShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreCartRoute = StoreCartRouteImport.update({
@@ -111,7 +123,9 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/account': typeof StoreAccountRoute
   '/cart': typeof StoreCartRoute
+  '/checkout': typeof StoreCheckoutRoute
   '/shop': typeof StoreShopRoute
+  '/thank-you': typeof StoreThankYouRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/marketing': typeof AdminMarketingRoute
@@ -126,7 +140,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/account': typeof StoreAccountRoute
   '/cart': typeof StoreCartRoute
+  '/checkout': typeof StoreCheckoutRoute
   '/shop': typeof StoreShopRoute
+  '/thank-you': typeof StoreThankYouRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/marketing': typeof AdminMarketingRoute
@@ -145,7 +161,9 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/_store/account': typeof StoreAccountRoute
   '/_store/cart': typeof StoreCartRoute
+  '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/shop': typeof StoreShopRoute
+  '/_store/thank-you': typeof StoreThankYouRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/marketing': typeof AdminMarketingRoute
@@ -165,7 +183,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/account'
     | '/cart'
+    | '/checkout'
     | '/shop'
+    | '/thank-you'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/marketing'
@@ -180,7 +200,9 @@ export interface FileRouteTypes {
   to:
     | '/account'
     | '/cart'
+    | '/checkout'
     | '/shop'
+    | '/thank-you'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/marketing'
@@ -198,7 +220,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/_store/account'
     | '/_store/cart'
+    | '/_store/checkout'
     | '/_store/shop'
+    | '/_store/thank-you'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/marketing'
@@ -303,11 +327,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBannersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_store/thank-you': {
+      id: '/_store/thank-you'
+      path: '/thank-you'
+      fullPath: '/thank-you'
+      preLoaderRoute: typeof StoreThankYouRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/shop': {
       id: '/_store/shop'
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof StoreShopRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/checkout': {
+      id: '/_store/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof StoreCheckoutRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/cart': {
@@ -337,7 +375,9 @@ declare module '@tanstack/react-router' {
 interface StoreRouteChildren {
   StoreAccountRoute: typeof StoreAccountRoute
   StoreCartRoute: typeof StoreCartRoute
+  StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreShopRoute: typeof StoreShopRoute
+  StoreThankYouRoute: typeof StoreThankYouRoute
   StoreIndexRoute: typeof StoreIndexRoute
   StoreProductIdRoute: typeof StoreProductIdRoute
 }
@@ -345,7 +385,9 @@ interface StoreRouteChildren {
 const StoreRouteChildren: StoreRouteChildren = {
   StoreAccountRoute: StoreAccountRoute,
   StoreCartRoute: StoreCartRoute,
+  StoreCheckoutRoute: StoreCheckoutRoute,
   StoreShopRoute: StoreShopRoute,
+  StoreThankYouRoute: StoreThankYouRoute,
   StoreIndexRoute: StoreIndexRoute,
   StoreProductIdRoute: StoreProductIdRoute,
 }
