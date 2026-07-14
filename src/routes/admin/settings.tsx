@@ -17,7 +17,6 @@ function SettingsAdmin() {
   const [form, setForm] = useState({
     banner_text: "",
     global_discount_pct: "0",
-    free_shipping_threshold: "30",
   });
 
   useEffect(() => {
@@ -25,7 +24,6 @@ function SettingsAdmin() {
       setForm({
         banner_text: data.banner_text ?? "",
         global_discount_pct: String(data.global_discount_pct ?? 0),
-        free_shipping_threshold: String(data.free_shipping_threshold ?? 30),
       });
   }, [data]);
 
@@ -38,7 +36,6 @@ function SettingsAdmin() {
           id: data.id,
           banner_text: form.banner_text,
           global_discount_pct: Number(form.global_discount_pct),
-          free_shipping_threshold: Number(form.free_shipping_threshold),
         },
       });
     } catch (err) {
@@ -57,7 +54,7 @@ function SettingsAdmin() {
           <input
             value={form.banner_text}
             onChange={(e) => setForm({ ...form, banner_text: e.target.value })}
-            placeholder="e.g. 🎉 Free delivery this weekend — use code SAVE20"
+            placeholder="e.g. 🎉 10% off fresh produce this weekend — use code SAVE10"
             className={inputCls}
           />
           <p className="mt-1 text-xs text-ink-soft">
@@ -72,16 +69,6 @@ function SettingsAdmin() {
             step="0.5"
             value={form.global_discount_pct}
             onChange={(e) => setForm({ ...form, global_discount_pct: e.target.value })}
-            className={inputCls}
-          />
-        </div>
-        <div>
-          <label className={labelCls}>Free Shipping Threshold ($)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={form.free_shipping_threshold}
-            onChange={(e) => setForm({ ...form, free_shipping_threshold: e.target.value })}
             className={inputCls}
           />
         </div>

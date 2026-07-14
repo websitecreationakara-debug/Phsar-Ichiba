@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Minus, Plus, Trash2, ShoppingBasket } from 'lucide-react'
 import { useCart, itemKey, itemUnitPrice } from '@/hooks/use-cart'
-import { useStoreSettings } from '@/hooks/use-products'
 import { useI18n } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice } from '@/lib/utils'
@@ -10,11 +9,7 @@ export const Route = createFileRoute('/_store/cart')({ component: CartPage })
 
 function CartPage() {
   const { items, subtotal, remove, setQty } = useCart()
-  const { data: settings } = useStoreSettings()
   const { t } = useI18n()
-
-  const threshold = settings?.free_shipping_threshold ?? 30
-  const remaining = Math.max(0, threshold - subtotal)
 
   if (items.length === 0) {
     return (
@@ -117,15 +112,9 @@ function CartPage() {
             <span className="text-ink-soft">{t('cart.subtotal')}</span>
             <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
           </div>
-          {remaining > 0 ? (
-            <p className="mt-3 rounded-lg bg-leaf-50 px-3 py-2 text-xs text-leaf-800">
-              {t('cart.freeDeliveryRemaining', { amount: formatPrice(remaining) })}
-            </p>
-          ) : (
-            <p className="mt-3 rounded-lg bg-leaf-50 px-3 py-2 text-xs text-leaf-800">
-              {t('cart.freeDeliveryUnlocked')}
-            </p>
-          )}
+          <p className="mt-3 rounded-lg bg-leaf-50 px-3 py-2 text-xs text-leaf-800">
+            {t('cart.deliveryFeeNotice')}
+          </p>
           <div className="mt-4 flex items-center justify-between border-t border-leaf-100 pt-4">
             <span className="font-display text-base font-bold text-ink">{t('cart.total')}</span>
             <span className="font-display text-xl font-bold text-leaf-700">{formatPrice(subtotal)}</span>

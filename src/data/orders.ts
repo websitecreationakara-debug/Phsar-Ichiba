@@ -1,14 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import {
-  orders,
-  products,
-  product_variations,
-  promotions,
-  promo_codes,
-  store_settings,
-} from "@/db/schema";
+import { orders, products, product_variations, promotions, promo_codes } from "@/db/schema";
 import { applyPromo } from "@/lib/promotions";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
@@ -37,8 +30,7 @@ type CreateOrderInput = {
   payment_method?: string | null;
 };
 
-// Flat-rate shipping below the free-delivery threshold (kept in sync with the
-// store-front summary in checkout.tsx).
+// Flat delivery fee charged on every order — this business has no free-delivery tier.
 const SHIPPING_FEE = 2.5;
 
 const parseItems = (row: typeof orders.$inferSelect) => ({
@@ -111,7 +103,7 @@ export const createOrder = createServerFn({ method: "POST" })
     // from the DB (matching either a simple product or a variation id) and
     // recompute the total + shipping server-side.
     const ids = rawItems.map((i) => i.id).filter(Boolean);
-    const [prodRows, varRows, settingsRows] = await Promise.all([
+    const [prodRows, varRows] = await Promise.all([
       db
         .select({
           id: products.id,
@@ -132,7 +124,6 @@ export const createOrder = createServerFn({ method: "POST" })
         })
         .from(product_variations)
         .where(inArray(product_variations.id, ids)),
-      db.select().from(store_settings).limit(1),
     ]);
 
     // A variation's discount comes from its parent product's promotion, so fetch
@@ -215,8 +206,7 @@ export const createOrder = createServerFn({ method: "POST" })
     }
     const discountedSubtotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
 
-    const threshold = Number(settingsRows[0]?.free_shipping_threshold ?? 50);
-    const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
+    const shipping = discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
     const total = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
     // KHQR orders wait in "awaiting_payment" until the gateway confirms; COD

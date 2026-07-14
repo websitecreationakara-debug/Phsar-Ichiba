@@ -141,6 +141,5 @@ export type StoreSettings = {
   id: string;
   banner_text: string | null;
   global_discount_pct: number | null;
-  free_shipping_threshold: number | null;
   updated_at: string;
 };

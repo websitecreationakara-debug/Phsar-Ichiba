@@ -200,7 +200,6 @@ export const store_settings = sqliteTable("store_settings", {
   id: text("id").primaryKey().$defaultFn(uuid),
   banner_text: text("banner_text"),
   global_discount_pct: real("global_discount_pct").default(0),
-  free_shipping_threshold: real("free_shipping_threshold").default(30),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
 
