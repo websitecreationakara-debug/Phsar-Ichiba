@@ -106,7 +106,13 @@ function AdminLayout() {
           title="Phsar Ichiba"
           className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}
         >
-          <span className="flex shrink-0 items-center justify-center rounded-xl bg-cream p-1.5">
+          <span
+            className="flex shrink-0 items-center justify-center rounded-full p-2.5"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(251,247,236,0.9) 0%, rgba(251,247,236,0.45) 60%, rgba(251,247,236,0) 78%)",
+            }}
+          >
             <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-8 w-8 object-contain" />
           </span>
         </Link>
