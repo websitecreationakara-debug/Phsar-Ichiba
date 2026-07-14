@@ -43,7 +43,7 @@ export function SiteHeader() {
         </button>
 
         <Link to="/" className="flex shrink-0 items-center gap-2">
-          <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-12 w-12 object-contain" />
+          <img src="/brand/wordmark.png" alt="Phsar Ichiba" className="h-12 w-auto object-contain" />
         </Link>
 
         <form onSubmit={submitSearch} className="mx-auto hidden max-w-md flex-1 md:block">

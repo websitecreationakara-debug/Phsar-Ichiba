@@ -9,8 +9,8 @@ export function SiteFooter() {
     <footer className="mt-16 border-t border-leaf-100 bg-leaf-900 text-leaf-50">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
         <div>
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-10 w-10 object-contain" />
+          <Link to="/" className="inline-flex items-center rounded-xl bg-cream px-3 py-2">
+            <img src="/brand/wordmark.png" alt="Phsar Ichiba" className="h-8 w-auto object-contain" />
           </Link>
           <p className="mt-3 text-sm text-leaf-200">{t("footer.tagline")}</p>
         </div>
