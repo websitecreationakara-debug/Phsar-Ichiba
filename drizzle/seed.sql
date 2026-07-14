@@ -12,9 +12,9 @@ INSERT OR IGNORE INTO categories (id, name, slug, image_url, parent_id, created_
   ('891026ed-7a90-4baf-9457-4462ff61c063',       'Snacks & Sweets',  'snacks-sweets', NULL, NULL, '2026-07-01T00:00:00.000Z');
 
 INSERT OR IGNORE INTO hero_slides (id, eyebrow, title_top, title_accent, title_bottom, body, image_url, cta_label, cta_link, sort_order, active, created_at) VALUES
-  ('9611d9e5-a0a7-4a34-a957-a8fa674cf443', 'Fresh from the farm', 'Today''s pick,', 'straight from the market', 'to your door.', 'Hand-picked vegetables and fruit, sourced daily from local growers. Order before 6pm for same-day delivery.', NULL, 'Shop fresh produce', '/shop?category=vegetables', 0, 1, '2026-07-01T00:00:00.000Z'),
-  ('d5224002-332e-4cc5-9c21-a29a6a879648', 'This week only', 'Stock up and', 'save 20%', 'on seasonal fruit.', 'Mangoes, dragon fruit, and rambutan are in season — grab them while they last.', NULL, 'View the offer', '/shop?category=fruits', 1, 1, '2026-07-01T00:00:00.000Z'),
-  ('1aadbebb-6ef9-4128-bdcf-bad38c1aa244', 'New in store', 'Everything for', 'tonight''s dinner', 'in one basket.', 'Fresh herbs, rice, and pantry staples alongside your vegetables — one delivery, one basket.', NULL, 'Browse the market', '/shop', 2, 1, '2026-07-01T00:00:00.000Z');
+  ('9611d9e5-a0a7-4a34-a957-a8fa674cf443', '農場直送', '今日の一品を、', '市場から直接', 'ご自宅まで。', '地元の農家から毎日仕入れた、厳選野菜と果物。午後6時までのご注文で当日配送。', NULL, '新鮮な野菜を見る', '/shop?category=vegetables', 0, 1, '2026-07-01T00:00:00.000Z'),
+  ('d5224002-332e-4cc5-9c21-a29a6a879648', '今週限定', '旬の果物が', '20%オフ', 'でお買い得。', 'マンゴー、ドラゴンフルーツ、ランブータンが旬を迎えています。お早めに。', NULL, '詳しく見る', '/shop?category=fruits', 1, 1, '2026-07-01T00:00:00.000Z'),
+  ('1aadbebb-6ef9-4128-bdcf-bad38c1aa244', '新着商品', '今晩の食卓に', '必要なものが', 'すべて揃う。', '新鮮なハーブ、お米、日用食品も野菜と一緒に、まとめてお届けします。', NULL, 'マーケットを見る', '/shop', 2, 1, '2026-07-01T00:00:00.000Z');
 
 INSERT OR IGNORE INTO store_settings (id, banner_text, global_discount_pct, free_shipping_threshold, updated_at) VALUES
   ('335ea3b2-c242-468f-8a0a-14b40809c106', 'Free delivery on orders over $30 — order before 6pm for same-day delivery.', 0, 30, '2026-07-01T00:00:00.000Z');

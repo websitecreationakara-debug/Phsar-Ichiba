@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { Minus, Plus, Trash2, ShoppingBasket } from 'lucide-react'
 import { useCart, itemKey, itemUnitPrice } from '@/hooks/use-cart'
 import { useStoreSettings } from '@/hooks/use-products'
+import { useI18n } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice } from '@/lib/utils'
 
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/cart')({ component: CartPage })
 function CartPage() {
   const { items, subtotal, remove, setQty } = useCart()
   const { data: settings } = useStoreSettings()
+  const { t } = useI18n()
 
   const threshold = settings?.free_shipping_threshold ?? 30
   const remaining = Math.max(0, threshold - subtotal)
@@ -18,13 +20,13 @@ function CartPage() {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-20 text-center">
         <ShoppingBasket className="h-16 w-16 text-leaf-300" strokeWidth={1.5} />
-        <h1 className="font-display text-2xl font-bold text-ink">Your basket is empty</h1>
-        <p className="text-sm text-ink-soft">Fresh vegetables and fruit are just a click away.</p>
+        <h1 className="font-display text-2xl font-bold text-ink">{t('cart.empty')}</h1>
+        <p className="text-sm text-ink-soft">{t('cart.emptySub')}</p>
         <Link
           to="/shop"
           className="mt-2 rounded-full bg-leaf-600 px-6 py-3 text-sm font-semibold text-white hover:bg-leaf-700"
         >
-          Start shopping
+          {t('cart.startShopping')}
         </Link>
       </div>
     )
@@ -32,7 +34,7 @@ function CartPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="font-display text-2xl font-bold text-ink">Your basket</h1>
+      <h1 className="font-display text-2xl font-bold text-ink">{t('cart.title')}</h1>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_320px]">
         <ul className="divide-y divide-leaf-100 rounded-2xl border border-leaf-100 bg-white">
@@ -67,7 +69,7 @@ function CartPage() {
                         {item.product.title}
                       </Link>
                       {item.variation && <p className="text-xs text-ink-soft">{item.variation.weight}</p>}
-                      <p className="text-xs text-ink-soft">{formatPrice(unit)} each</p>
+                      <p className="text-xs text-ink-soft">{t('cart.priceEach', { price: formatPrice(unit) })}</p>
                     </div>
                     <button
                       type="button"
@@ -110,22 +112,22 @@ function CartPage() {
         </ul>
 
         <aside className="h-fit rounded-2xl border border-leaf-100 bg-white p-5">
-          <h2 className="font-display text-lg font-bold text-ink">Order summary</h2>
+          <h2 className="font-display text-lg font-bold text-ink">{t('cart.orderSummary')}</h2>
           <div className="mt-4 flex items-center justify-between text-sm">
-            <span className="text-ink-soft">Subtotal</span>
+            <span className="text-ink-soft">{t('cart.subtotal')}</span>
             <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
           </div>
           {remaining > 0 ? (
             <p className="mt-3 rounded-lg bg-leaf-50 px-3 py-2 text-xs text-leaf-800">
-              Add {formatPrice(remaining)} more for free delivery.
+              {t('cart.freeDeliveryRemaining', { amount: formatPrice(remaining) })}
             </p>
           ) : (
             <p className="mt-3 rounded-lg bg-leaf-50 px-3 py-2 text-xs text-leaf-800">
-              You've unlocked free delivery! 🎉
+              {t('cart.freeDeliveryUnlocked')}
             </p>
           )}
           <div className="mt-4 flex items-center justify-between border-t border-leaf-100 pt-4">
-            <span className="font-display text-base font-bold text-ink">Total</span>
+            <span className="font-display text-base font-bold text-ink">{t('cart.total')}</span>
             <span className="font-display text-xl font-bold text-leaf-700">{formatPrice(subtotal)}</span>
           </div>
         </aside>

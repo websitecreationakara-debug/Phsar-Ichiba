@@ -5,6 +5,7 @@ import { categoryArt } from "@/lib/category-art";
 import { formatPrice, cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useI18n } from "@/lib/i18n";
 
 export function ProductCard({
   product,
@@ -15,6 +16,7 @@ export function ProductCard({
 }) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
+  const { t } = useI18n();
   const { icon: Icon, gradient } = categoryArt(categorySlug);
 
   const outOfStock = product.stock !== null && product.stock <= 0;
@@ -52,7 +54,7 @@ export function ProductCard({
         )}
         {outOfStock && (
           <span className="absolute left-2 top-2 rounded-full bg-ink/70 px-2 py-0.5 text-xs font-semibold text-white">
-            Sold out
+            {t("product.soldOut")}
           </span>
         )}
       </Link>
@@ -60,7 +62,7 @@ export function ProductCard({
       <button
         type="button"
         onClick={() => toggle(product.id)}
-        aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+        aria-label={t("nav.wishlist")}
         aria-pressed={wished}
         className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-ink-soft shadow-sm transition hover:text-tomato-500"
       >
@@ -94,7 +96,7 @@ export function ProductCard({
             type="button"
             disabled={outOfStock}
             onClick={() => add(product)}
-            aria-label={`Add ${product.title} to cart`}
+            aria-label={t("product.addToCartAria", { title: product.title })}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-leaf-600 text-white transition hover:bg-leaf-700 disabled:cursor-not-allowed disabled:bg-ink-soft/30"
           >
             <Plus className="h-4 w-4" />

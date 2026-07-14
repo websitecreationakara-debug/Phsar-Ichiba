@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, Heart, User, ShoppingBasket, Menu, X, Sprout } from "lucide-react";
+import { Search, Heart, User, ShoppingBasket, Menu, X, Sprout, Languages } from "lucide-react";
 import { useCategories } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useI18n, LOCALES } from "@/lib/i18n";
 import { categoryArt } from "@/lib/category-art";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ export function SiteHeader() {
   const { data: categories } = useCategories();
   const { count: cartCount, setDrawerOpen } = useCart();
   const { count: wishCount } = useWishlist();
+  const { t, locale, setLocale } = useI18n();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -20,10 +22,12 @@ export function SiteHeader() {
     navigate({ to: "/shop", search: (prev) => ({ ...prev, q: query || undefined }) });
   };
 
+  const toggleLocale = () => setLocale(locale === "ja" ? "en" : "ja");
+
   return (
     <header className="sticky top-0 z-40 border-b border-leaf-100 bg-cream/95 backdrop-blur">
       <div className="bg-leaf-700 py-1.5 text-center text-xs font-medium text-leaf-50">
-        Free delivery on orders over $30 — order before 6pm for same-day delivery.
+        {t("bar.delivery", { threshold: 30 })}
       </div>
 
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
@@ -31,7 +35,7 @@ export function SiteHeader() {
           type="button"
           className="rounded-full p-2 text-ink hover:bg-leaf-100 md:hidden"
           onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Toggle menu"
+          aria-label={t("a11y.toggleMenu")}
         >
           {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -54,31 +58,40 @@ export function SiteHeader() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search fresh vegetables, fruit, and more…"
+              placeholder={t("nav.searchPlaceholder")}
               className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-soft/60"
             />
           </div>
         </form>
 
         <div className="ml-auto flex items-center gap-1">
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className="hidden items-center gap-1 rounded-full px-2.5 py-2 text-xs font-semibold text-ink-soft hover:bg-leaf-100 sm:flex"
+            aria-label={t("a11y.switchLanguage")}
+          >
+            <Languages className="h-4 w-4" />
+            {LOCALES.find((l) => l.code === locale)?.label}
+          </button>
           <Link
             to="/shop"
             className="hidden rounded-full p-2 text-ink hover:bg-leaf-100 sm:flex"
-            aria-label="Wishlist"
+            aria-label={t("nav.wishlist")}
           >
             <span className="relative">
               <Heart className="h-5 w-5" />
               {wishCount > 0 && <CountBadge n={wishCount} />}
             </span>
           </Link>
-          <Link to="/account" className="hidden rounded-full p-2 text-ink hover:bg-leaf-100 sm:flex" aria-label="Account">
+          <Link to="/account" className="hidden rounded-full p-2 text-ink hover:bg-leaf-100 sm:flex" aria-label={t("nav.account")}>
             <User className="h-5 w-5" />
           </Link>
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
             className="relative flex items-center gap-2 rounded-full bg-leaf-600 px-3 py-2 text-white transition hover:bg-leaf-700"
-            aria-label="Open cart"
+            aria-label={t("nav.cart")}
           >
             <ShoppingBasket className="h-5 w-5" />
             {cartCount > 0 && <CountBadge n={cartCount} />}
@@ -87,7 +100,7 @@ export function SiteHeader() {
       </div>
 
       <nav className="mx-auto hidden max-w-6xl gap-1 overflow-x-auto px-4 pb-3 md:flex">
-        <CategoryChip to="/shop" label="All" />
+        <CategoryChip to="/shop" label={t("nav.all")} />
         {categories?.map((c) => {
           const { icon: Icon } = categoryArt(c.slug);
           return (
@@ -109,12 +122,12 @@ export function SiteHeader() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search…"
+              placeholder={t("nav.searchPlaceholder")}
               className="w-full bg-transparent text-sm outline-none"
             />
           </form>
           <Link to="/shop" className="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-leaf-100" onClick={() => setMenuOpen(false)}>
-            All products
+            {t("nav.allProducts")}
           </Link>
           {categories?.map((c) => (
             <Link
@@ -128,8 +141,16 @@ export function SiteHeader() {
             </Link>
           ))}
           <Link to="/account" className="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-leaf-100" onClick={() => setMenuOpen(false)}>
-            Account
+            {t("nav.account")}
           </Link>
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-ink hover:bg-leaf-100"
+          >
+            <Languages className="h-4 w-4" />
+            {LOCALES.find((l) => l.code === locale)?.label}
+          </button>
         </nav>
       )}
     </header>

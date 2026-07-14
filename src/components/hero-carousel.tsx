@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HeroSlide } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const GRADIENTS = ["from-leaf-600 to-leaf-800", "from-carrot-500 to-tomato-600", "from-leaf-500 to-leaf-700"];
 
 export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const [active, setActive] = useState(0);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (slides.length < 2) return;
@@ -52,7 +54,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             <button
               type="button"
               onClick={() => setActive((i) => (i - 1 + slides.length) % slides.length)}
-              aria-label="Previous slide"
+              aria-label={t("a11y.prevSlide")}
               className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/20 p-2 text-white hover:bg-white/30 sm:flex"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -60,7 +62,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             <button
               type="button"
               onClick={() => setActive((i) => (i + 1) % slides.length)}
-              aria-label="Next slide"
+              aria-label={t("a11y.nextSlide")}
               className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/20 p-2 text-white hover:bg-white/30 sm:flex"
             >
               <ChevronRight className="h-5 w-5" />
@@ -76,7 +78,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               key={s.id}
               type="button"
               onClick={() => setActive(i)}
-              aria-label={`Go to slide ${i + 1}`}
+              aria-label={t("a11y.goToSlide", { n: i + 1 })}
               className={cn(
                 "h-1.5 rounded-full bg-white/50 transition-all",
                 i === active ? "w-6 bg-white" : "w-1.5",

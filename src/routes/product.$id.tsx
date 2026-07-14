@@ -7,6 +7,7 @@ import { getProductRating, rateProduct } from '@/data/ratings'
 import { useCart } from '@/hooks/use-cart'
 import { useWishlist } from '@/hooks/use-wishlist'
 import { useAuth } from '@/hooks/use-auth'
+import { useI18n } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice, cn } from '@/lib/utils'
 import type { ProductVariation } from '@/lib/types'
@@ -21,6 +22,7 @@ function ProductDetail() {
   const { add } = useCart()
   const { has, toggle } = useWishlist()
   const { user } = useAuth()
+  const { t } = useI18n()
   const queryClient = useQueryClient()
 
   const [qty, setQty] = useState(1)
@@ -38,15 +40,15 @@ function ProductDetail() {
   })
 
   if (isLoading) {
-    return <div className="mx-auto max-w-6xl px-4 py-16 text-center text-ink-soft">Loading…</div>
+    return <div className="mx-auto max-w-6xl px-4 py-16 text-center text-ink-soft">{t('shop.loading')}</div>
   }
 
   if (!product) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16 text-center">
-        <p className="text-lg font-semibold text-ink">Product not found.</p>
+        <p className="text-lg font-semibold text-ink">{t('product.notFound')}</p>
         <Link to="/shop" className="mt-3 inline-block text-sm font-semibold text-leaf-700 hover:underline">
-          Back to shop
+          {t('product.backToShop')}
         </Link>
       </div>
     )
@@ -74,7 +76,7 @@ function ProductDetail() {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <nav className="mb-6 flex items-center gap-1 text-xs text-ink-soft">
         <Link to="/shop" className="hover:underline">
-          Shop
+          {t('product.breadcrumbShop')}
         </Link>
         <ChevronRight className="h-3 w-3" />
         {category && (
@@ -112,7 +114,7 @@ function ProductDetail() {
               <Star className="h-4 w-4 fill-carrot-400 text-carrot-400" />
               <span className="font-semibold text-ink">{(avg ?? product.rating ?? 0).toFixed(1)}</span>
             </div>
-            <span className="text-ink-soft">({count} rating{count === 1 ? '' : 's'})</span>
+            <span className="text-ink-soft">{t('product.ratings', { n: count })}</span>
           </div>
 
           <div className="mt-4 flex items-baseline gap-2">
@@ -131,7 +133,7 @@ function ProductDetail() {
 
           {isVariable && (
             <div className="mt-6">
-              <p className="mb-2 text-sm font-semibold text-ink">Choose a size</p>
+              <p className="mb-2 text-sm font-semibold text-ink">{t('product.chooseSize')}</p>
               <div className="flex flex-wrap gap-2">
                 {variations!.map((v) => (
                   <button
@@ -179,14 +181,18 @@ function ProductDetail() {
               onClick={() => add(product, variation, qty)}
               className="flex-1 rounded-full bg-leaf-600 py-3 text-sm font-bold text-white transition hover:bg-leaf-700 disabled:cursor-not-allowed disabled:bg-ink-soft/30"
             >
-              {outOfStock ? 'Sold out' : isVariable && !variation ? 'Select a size' : 'Add to basket'}
+              {outOfStock
+                ? t('product.soldOut')
+                : isVariable && !variation
+                  ? t('product.selectSize')
+                  : t('product.addToBasket')}
             </button>
 
             <button
               type="button"
               onClick={() => toggle(product.id)}
               aria-pressed={wished}
-              aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
+              aria-label={t('nav.wishlist')}
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-leaf-200 text-ink-soft hover:text-tomato-500"
             >
               <Heart className={cn('h-5 w-5', wished && 'fill-tomato-500 text-tomato-500')} />
@@ -194,7 +200,7 @@ function ProductDetail() {
           </div>
 
           <div className="mt-8 border-t border-leaf-100 pt-6">
-            <p className="mb-2 text-sm font-semibold text-ink">Rate this product</p>
+            <p className="mb-2 text-sm font-semibold text-ink">{t('product.rateThis')}</p>
             {user ? (
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
@@ -219,9 +225,8 @@ function ProductDetail() {
             ) : (
               <p className="text-sm text-ink-soft">
                 <Link to="/account" className="font-semibold text-leaf-700 hover:underline">
-                  Sign in
-                </Link>{' '}
-                to leave a rating.
+                  {t('product.signInToRate')}
+                </Link>
               </p>
             )}
           </div>

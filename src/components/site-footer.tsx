@@ -1,7 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { Sprout, MapPin, Phone, Mail } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export function SiteFooter() {
+  const { t } = useI18n();
+
   return (
     <footer className="mt-16 border-t border-leaf-100 bg-leaf-900 text-leaf-50">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
@@ -12,31 +15,29 @@ export function SiteFooter() {
             </span>
             <span className="font-display text-base font-bold">Phsar Ichiba</span>
           </Link>
-          <p className="mt-3 text-sm text-leaf-200">
-            Fresh vegetables, fruit, and everyday groceries — picked daily, delivered fast.
-          </p>
+          <p className="mt-3 text-sm text-leaf-200">{t("footer.tagline")}</p>
         </div>
 
         <FooterCol
-          title="Shop"
+          title={t("footer.shop")}
           links={[
-            { label: "All products", to: "/shop" },
-            { label: "Fresh vegetables", to: "/shop", search: { category: "vegetables" } },
-            { label: "Fresh fruits", to: "/shop", search: { category: "fruits" } },
-            { label: "Meat & seafood", to: "/shop", search: { category: "meat-seafood" } },
+            { label: t("footer.allProducts"), to: "/shop" },
+            { label: t("footer.catVegetables"), to: "/shop", search: { category: "vegetables" } },
+            { label: t("footer.catFruits"), to: "/shop", search: { category: "fruits" } },
+            { label: t("footer.catMeatSeafood"), to: "/shop", search: { category: "meat-seafood" } },
           ]}
         />
 
         <FooterCol
-          title="Customer care"
+          title={t("footer.customerCare")}
           links={[
-            { label: "My account", to: "/account" },
-            { label: "Order tracking", to: "/account" },
+            { label: t("footer.myAccount"), to: "/account" },
+            { label: t("footer.orderTracking"), to: "/account" },
           ]}
         />
 
         <div>
-          <h4 className="font-display text-sm font-semibold text-white">Get in touch</h4>
+          <h4 className="font-display text-sm font-semibold text-white">{t("footer.getInTouch")}</h4>
           <ul className="mt-3 space-y-2 text-sm text-leaf-200">
             <li className="flex items-center gap-2">
               <MapPin className="h-4 w-4 shrink-0" /> Phnom Penh, Cambodia
@@ -52,7 +53,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-leaf-800 px-4 py-4 text-center text-xs text-leaf-300">
-        © {new Date().getFullYear()} Phsar Ichiba. All rights reserved.
+        © {new Date().getFullYear()} Phsar Ichiba. {t("footer.rights")}
       </div>
     </footer>
   );
