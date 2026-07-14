@@ -6,7 +6,7 @@ import { HeroCarousel } from '@/components/hero-carousel'
 import { ProductCard } from '@/components/product-card'
 import { categoryArt } from '@/lib/category-art'
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute('/_store/')({ component: Home })
 
 const PERKS: { icon: typeof Leaf; titleKey: I18nKey; bodyKey: I18nKey }[] = [
   { icon: Leaf, titleKey: 'home.perk1.title', bodyKey: 'home.perk1.body' },

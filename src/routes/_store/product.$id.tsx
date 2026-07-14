@@ -12,7 +12,7 @@ import { categoryArt } from '@/lib/category-art'
 import { formatPrice, cn } from '@/lib/utils'
 import type { ProductVariation } from '@/lib/types'
 
-export const Route = createFileRoute('/product/$id')({ component: ProductDetail })
+export const Route = createFileRoute('/_store/product/$id')({ component: ProductDetail })
 
 function ProductDetail() {
   const { id } = Route.useParams()

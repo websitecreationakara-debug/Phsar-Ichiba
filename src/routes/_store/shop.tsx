@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 type ShopSearch = { category?: string; q?: string }
 
-export const Route = createFileRoute('/shop')({
+export const Route = createFileRoute('/_store/shop')({
   component: Shop,
   validateSearch: (search: Record<string, unknown>): ShopSearch => ({
     category: typeof search.category === 'string' ? search.category : undefined,

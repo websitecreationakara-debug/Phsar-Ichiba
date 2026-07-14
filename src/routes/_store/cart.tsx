@@ -6,7 +6,7 @@ import { useI18n } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice } from '@/lib/utils'
 
-export const Route = createFileRoute('/cart')({ component: CartPage })
+export const Route = createFileRoute('/_store/cart')({ component: CartPage })
 
 function CartPage() {
   const { items, subtotal, remove, setQty } = useCart()
