@@ -61,3 +61,33 @@ h3,
 h4 {
   font-family: var(--font-display);
 }
+
+/* Dual-thumb price slider (two overlapping <input type="range">s): the track
+   itself is invisible, only the thumbs are interactive, so both can be
+   dragged independently over the same rail. */
+.range-thumb::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: var(--color-leaf-600);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: var(--color-leaf-600);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.range-thumb::-moz-range-track {
+  background: transparent;
+}
