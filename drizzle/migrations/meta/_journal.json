@@ -15,6 +15,13 @@
       "when": 1783999412531,
       "tag": "0001_light_killer_shrike",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784020692193,
+      "tag": "0002_add_category_name_en",
+      "breakpoints": true
     }
   ]
 }

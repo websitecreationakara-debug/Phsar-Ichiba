@@ -47,6 +47,7 @@ function CategoriesAdmin() {
   });
   const qc = useQueryClient();
   const [name, setName] = useState("");
+  const [nameEn, setNameEn] = useState("");
   const [parentId, setParentId] = useState("");
 
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -68,11 +69,14 @@ function CategoriesAdmin() {
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createCategory({ data: { name, slug: slugify(name), parent_id: parentId || null } });
+      await createCategory({
+        data: { name, name_en: nameEn || null, slug: slugify(name), parent_id: parentId || null },
+      });
     } catch (err) {
       return toast.error(err instanceof Error ? err.message : "Failed to add category");
     }
     setName("");
+    setNameEn("");
     setParentId("");
     qc.invalidateQueries({ queryKey: ["categories"] });
   };
@@ -89,14 +93,14 @@ function CategoriesAdmin() {
 
   const startRename = (c: Category) => {
     setRenaming(c.id);
-    setRenameValue(c.name);
+    setRenameValue(c.name_en ?? "");
   };
 
   const saveRename = async (c: Category) => {
     const next = renameValue.trim();
-    if (!next || next === c.name) return setRenaming(null);
+    if (next === (c.name_en ?? "")) return setRenaming(null);
     try {
-      await updateCategory({ data: { id: c.id, name: next, slug: slugify(next) } });
+      await updateCategory({ data: { id: c.id, name_en: next || null } });
     } catch (err) {
       return toast.error(err instanceof Error ? err.message : "Failed to rename");
     }
@@ -179,12 +183,17 @@ function CategoriesAdmin() {
               if (e.key === "Enter") saveRename(c);
               if (e.key === "Escape") setRenaming(null);
             }}
+            placeholder="English name"
             className={cn(inputCls, "h-9 w-48")}
           />
         ) : (
           <div className="min-w-0">
-            <p className="truncate font-medium text-ink">{c.name}</p>
-            <p className="truncate text-xs text-ink-soft">{c.slug}</p>
+            <p className="truncate font-medium text-ink">
+              {c.name_en || <span className="italic text-ink-soft">(no English name)</span>}
+            </p>
+            <p className="truncate text-xs text-ink-soft">
+              {c.name} · {c.slug}
+            </p>
           </div>
         )}
       </div>
@@ -199,7 +208,7 @@ function CategoriesAdmin() {
             .filter((p) => p.id !== c.id && !p.parent_id)
             .map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {p.name_en || p.name}
               </option>
             ))}
         </select>
@@ -241,6 +250,12 @@ function CategoriesAdmin() {
           placeholder="New category name"
           className={cn(inputCls, "min-w-[200px] flex-1")}
         />
+        <input
+          value={nameEn}
+          onChange={(e) => setNameEn(e.target.value)}
+          placeholder="English name (optional)"
+          className={cn(inputCls, "min-w-[180px] flex-1")}
+        />
         <select
           value={parentId || "none"}
           onChange={(e) => setParentId(e.target.value === "none" ? "" : e.target.value)}
@@ -249,7 +264,7 @@ function CategoriesAdmin() {
           <option value="none">Top level (no parent)</option>
           {topLevel.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {c.name_en || c.name}
             </option>
           ))}
         </select>
@@ -261,7 +276,12 @@ function CategoriesAdmin() {
         {renderTree(null, 0)}
       </div>
 
-      <Modal open={!!editing} onClose={() => setEditing(null)} title={`${editing?.name ?? ""} image`} maxWidth="max-w-md">
+      <Modal
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        title={`${editing?.name_en || editing?.name || ""} image`}
+        maxWidth="max-w-md"
+      >
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-leaf-200 bg-leaf-50">

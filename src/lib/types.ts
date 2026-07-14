@@ -49,6 +49,7 @@ export type ProductVariation = {
 export type Category = {
   id: string;
   name: string;
+  name_en: string | null;
   slug: string;
   image_url: string | null;
   parent_id: string | null;

@@ -409,7 +409,7 @@ function ProductsAdmin() {
           <option value="all">All categories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {c.name_en || c.name}
             </option>
           ))}
         </select>
@@ -664,7 +664,7 @@ function ProductsAdmin() {
                 <option value="">Select category</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.name_en || c.name}
                   </option>
                 ))}
               </select>

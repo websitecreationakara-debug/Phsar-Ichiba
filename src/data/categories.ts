@@ -10,7 +10,13 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
 
 export const createCategory = createServerFn({ method: "POST" })
   .inputValidator(
-    (d: { name: string; slug: string; image_url?: string | null; parent_id?: string | null }) => d,
+    (d: {
+      name: string;
+      name_en?: string | null;
+      slug: string;
+      image_url?: string | null;
+      parent_id?: string | null;
+    }) => d,
   )
   .handler(async ({ data }) => {
     await requireManager();
@@ -24,6 +30,7 @@ export const updateCategory = createServerFn({ method: "POST" })
       id: string;
       image_url?: string | null;
       name?: string;
+      name_en?: string | null;
       slug?: string;
       parent_id?: string | null;
     }) => d,

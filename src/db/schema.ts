@@ -10,6 +10,8 @@ const nowIso = () => new Date().toISOString();
 export const categories = sqliteTable("categories", {
   id: text("id").primaryKey().$defaultFn(uuid),
   name: text("name").notNull(),
+  // English name for admin/staff UI, since storefront `name` is Japanese-first.
+  name_en: text("name_en"),
   slug: text("slug").notNull().unique(),
   image_url: text("image_url"),
   // Self-reference for parent/child hierarchy; null = top-level category.
