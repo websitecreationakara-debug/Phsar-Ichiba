@@ -29,7 +29,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-leaf-100 bg-cream/95 backdrop-blur">
       <div className="bg-leaf-700 py-1.5 text-center text-xs font-medium text-leaf-50">
-        {t("bar.delivery", { threshold: 30 })}
+        {t("bar.delivery")}
       </div>
 
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">

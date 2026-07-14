@@ -25,7 +25,7 @@ const ja = {
   "root.title": "プサール・イチバ — フレッシュマーケット",
   "root.description": "新鮮な野菜・果物・日用食品を毎日収穫し、迅速にお届けします。",
 
-  "bar.delivery": "{threshold}$以上のご注文で配送無料 — 午後6時までのご注文で当日配送。",
+  "bar.delivery": "午後6時までのご注文で当日配送。",
 
   "nav.searchPlaceholder": "野菜、果物などを検索…",
   "nav.all": "すべて",
@@ -160,7 +160,7 @@ const en: Dict = {
   "root.title": "Phsar Ichiba — Fresh Market",
   "root.description": "Fresh vegetables, fruit, and everyday groceries, picked daily and delivered fast.",
 
-  "bar.delivery": "Free delivery on orders over {threshold}$ — order before 6pm for same-day delivery.",
+  "bar.delivery": "Order before 6pm for same-day delivery.",
 
   "nav.searchPlaceholder": "Search fresh vegetables, fruit, and more…",
   "nav.all": "All",
