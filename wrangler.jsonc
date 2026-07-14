@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "phsar-ichiba",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "phsar-ichiba",
+      "database_id": "e345748c-f8c2-485a-afd8-e55cb354ef89",
+      "migrations_dir": "drizzle/migrations"
+    }
+  ]
+}

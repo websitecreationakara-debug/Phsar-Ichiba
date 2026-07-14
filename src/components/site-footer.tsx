@@ -1,0 +1,82 @@
+import { Link } from "@tanstack/react-router";
+import { Sprout, MapPin, Phone, Mail } from "lucide-react";
+
+export function SiteFooter() {
+  return (
+    <footer className="mt-16 border-t border-leaf-100 bg-leaf-900 text-leaf-50">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
+        <div>
+          <Link to="/" className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-leaf-500">
+              <Sprout className="h-4 w-4" />
+            </span>
+            <span className="font-display text-base font-bold">Phsar Ichiba</span>
+          </Link>
+          <p className="mt-3 text-sm text-leaf-200">
+            Fresh vegetables, fruit, and everyday groceries — picked daily, delivered fast.
+          </p>
+        </div>
+
+        <FooterCol
+          title="Shop"
+          links={[
+            { label: "All products", to: "/shop" },
+            { label: "Fresh vegetables", to: "/shop", search: { category: "vegetables" } },
+            { label: "Fresh fruits", to: "/shop", search: { category: "fruits" } },
+            { label: "Meat & seafood", to: "/shop", search: { category: "meat-seafood" } },
+          ]}
+        />
+
+        <FooterCol
+          title="Customer care"
+          links={[
+            { label: "My account", to: "/account" },
+            { label: "Order tracking", to: "/account" },
+          ]}
+        />
+
+        <div>
+          <h4 className="font-display text-sm font-semibold text-white">Get in touch</h4>
+          <ul className="mt-3 space-y-2 text-sm text-leaf-200">
+            <li className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 shrink-0" /> Phnom Penh, Cambodia
+            </li>
+            <li className="flex items-center gap-2">
+              <Phone className="h-4 w-4 shrink-0" /> +855 12 345 678
+            </li>
+            <li className="flex items-center gap-2">
+              <Mail className="h-4 w-4 shrink-0" /> hello@phsarichiba.com
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="border-t border-leaf-800 px-4 py-4 text-center text-xs text-leaf-300">
+        © {new Date().getFullYear()} Phsar Ichiba. All rights reserved.
+      </div>
+    </footer>
+  );
+}
+
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; to: string; search?: Record<string, string> }[];
+}) {
+  return (
+    <div>
+      <h4 className="font-display text-sm font-semibold text-white">{title}</h4>
+      <ul className="mt-3 space-y-2 text-sm text-leaf-200">
+        {links.map((l) => (
+          <li key={l.label}>
+            <Link to={l.to} search={l.search as never} className="transition hover:text-white">
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

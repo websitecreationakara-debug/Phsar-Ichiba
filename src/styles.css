@@ -1,0 +1,63 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap");
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Baloo 2", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Warm, paper-like backdrop instead of stark white. */
+  --color-cream: #fbf7ec;
+  --color-cream-100: #f5efdc;
+  --color-ink: #26301f;
+  --color-ink-soft: #5b6653;
+
+  /* Leaf green — primary brand color. */
+  --color-leaf-50: #f0f9e8;
+  --color-leaf-100: #dcf0c4;
+  --color-leaf-200: #b8de96;
+  --color-leaf-300: #93cb6c;
+  --color-leaf-400: #6fb94a;
+  --color-leaf-500: #4c9a2a;
+  --color-leaf-600: #3b7d20;
+  --color-leaf-700: #2f631a;
+  --color-leaf-800: #274f18;
+  --color-leaf-900: #213f16;
+
+  /* Carrot orange — accent for CTAs, prices, badges. */
+  --color-carrot-50: #fff5e9;
+  --color-carrot-100: #ffe4c2;
+  --color-carrot-200: #ffca8a;
+  --color-carrot-300: #ffab4d;
+  --color-carrot-400: #fb8d24;
+  --color-carrot-500: #ef7318;
+  --color-carrot-600: #d35e10;
+  --color-carrot-700: #ac4a0d;
+
+  /* Tomato red — sparingly, for sale/urgent badges. */
+  --color-tomato-500: #e2542a;
+  --color-tomato-600: #c6431e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+}
