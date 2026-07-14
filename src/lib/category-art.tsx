@@ -8,6 +8,10 @@ import {
   CupSoda,
   Cookie,
   ShoppingBasket,
+  Wine,
+  Soup,
+  Flame,
+  Square,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +28,11 @@ const ART: Record<string, CategoryArt> = {
   "rice-grains": { icon: Wheat, gradient: "from-carrot-300 to-carrot-500" },
   beverages: { icon: CupSoda, gradient: "from-leaf-200 to-leaf-400" },
   "snacks-sweets": { icon: Cookie, gradient: "from-carrot-400 to-tomato-500" },
+  alcohol: { icon: Wine, gradient: "from-tomato-500 to-tomato-700" },
+  tofu: { icon: Square, gradient: "from-carrot-100 to-leaf-200" },
+  "kampot-pepper": { icon: Flame, gradient: "from-carrot-500 to-tomato-600" },
+  "prepared-foods": { icon: Soup, gradient: "from-carrot-400 to-carrot-600" },
+  other: { icon: ShoppingBasket, gradient: "from-leaf-400 to-leaf-600" },
 };
 
 const FALLBACK: CategoryArt = { icon: ShoppingBasket, gradient: "from-leaf-300 to-leaf-600" };

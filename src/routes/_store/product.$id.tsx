@@ -129,7 +129,9 @@ function ProductDetail() {
             )}
           </div>
 
-          {product.description && <p className="mt-4 text-sm leading-relaxed text-ink-soft">{product.description}</p>}
+          {product.description && (
+            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink-soft">{product.description}</p>
+          )}
 
           {isVariable && (
             <div className="mt-6">
