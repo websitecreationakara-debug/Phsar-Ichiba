@@ -18,36 +18,17 @@ import type { Address } from '@/lib/types'
 // source of truth for the actual charge; this is just the checkout preview).
 const SHIPPING_FEE = 2.5
 
-// Half-hour delivery slots, 8:00 AM – 8:00 PM.
-const TIME_SLOTS = (() => {
-  const out: string[] = []
-  for (let h = 8; h <= 20; h++) {
-    out.push(`${String(h).padStart(2, '0')}:00`)
-    if (h < 20) out.push(`${String(h).padStart(2, '0')}:30`)
-  }
-  return out
-})()
-const timeLabel = (t: string) => {
-  const [h, m] = t.split(':').map(Number)
-  const h12 = h % 12 === 0 ? 12 : h % 12
-  return `${h12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
-}
-const slotMinutes = (t: string) => {
-  const [h, m] = t.split(':').map(Number)
-  return h * 60 + m
-}
 const LEAD_MINUTES = 30
 const localDate = (dayOffset = 0) => {
   const d = new Date()
   d.setDate(d.getDate() + dayOffset)
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
 }
-const localToday = () => localDate(0)
 
-// Fixed 2-hour store-pickup windows — today's remaining afternoon slots, then
-// tomorrow morning through mid-afternoon. Unlike delivery's rolling half-hour
-// slots, pickup windows are a fixed daily schedule set by the store.
-const PICKUP_WINDOWS: { dayOffset: 0 | 1; startHour: number }[] = [
+// Fixed 2-hour delivery windows — today's remaining afternoon slots, then
+// tomorrow morning through mid-afternoon. This is the store's actual fixed
+// delivery schedule (replaces free-form date + half-hour-time picking).
+const FIXED_SLOTS: { dayOffset: 0 | 1; startHour: number }[] = [
   { dayOffset: 0, startHour: 13 },
   { dayOffset: 0, startHour: 14 },
   { dayOffset: 0, startHour: 15 },
@@ -65,9 +46,9 @@ const hour12Label = (h: number) => {
   const h12 = h % 12 === 0 ? 12 : h % 12
   return `${h12}:00${h < 12 ? 'AM' : 'PM'}`
 }
-const pickupWindows = (dayLabel: (dayOffset: 0 | 1) => string) => {
+const fixedSlotWindows = (dayLabel: (dayOffset: 0 | 1) => string) => {
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes()
-  return PICKUP_WINDOWS.filter((w) => w.dayOffset !== 0 || w.startHour * 60 >= nowMinutes + LEAD_MINUTES).map(
+  return FIXED_SLOTS.filter((w) => w.dayOffset !== 0 || w.startHour * 60 >= nowMinutes + LEAD_MINUTES).map(
     (w) => ({
       value: `${localDate(w.dayOffset)}T${String(w.startHour).padStart(2, '0')}:00`,
       label: `${dayLabel(w.dayOffset)} ${hour12Label(w.startHour)}-${hour12Label(w.startHour + 2)}`,
@@ -97,37 +78,21 @@ function Checkout() {
   const addressRef = useRef<HTMLInputElement>(null)
   const cityRef = useRef<HTMLInputElement>(null)
   const [schedMode, setSchedMode] = useState<'asap' | 'schedule'>('asap')
-  const [schedDate, setSchedDate] = useState('')
-  const [schedTime, setSchedTime] = useState('')
+  const [scheduleSlot, setScheduleSlot] = useState('')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [saveNewAddress, setSaveNewAddress] = useState(false)
   const [fulfillmentMethod, setFulfillmentMethod] = useState<'delivery' | 'pickup'>('delivery')
-  const [pickupSlot, setPickupSlot] = useState('')
   const appliedDefault = useRef(false)
   const scheduledAt =
-    fulfillmentMethod === 'pickup'
-      ? pickupSlot || null
-      : schedMode === 'schedule' && schedDate && schedTime
-        ? `${schedDate}T${schedTime}`
-        : null
+    fulfillmentMethod === 'delivery' && schedMode === 'schedule' ? scheduleSlot || null : null
 
-  const isToday = schedDate === localToday()
-  const earliestToday = (() => {
-    const d = new Date()
-    return d.getHours() * 60 + d.getMinutes() + LEAD_MINUTES
-  })()
-  const availableSlots = isToday ? TIME_SLOTS.filter((slot) => slotMinutes(slot) >= earliestToday) : TIME_SLOTS
-  const availablePickupWindows = pickupWindows((dayOffset) =>
+  const availableFixedSlots = fixedSlotWindows((dayOffset) =>
     dayOffset === 0 ? t('checkout.today') : t('checkout.tomorrow'),
   )
 
   useEffect(() => {
-    if (schedTime && !availableSlots.includes(schedTime)) setSchedTime('')
-  }, [schedTime, availableSlots])
-
-  useEffect(() => {
-    if (pickupSlot && !availablePickupWindows.some((w) => w.value === pickupSlot)) setPickupSlot('')
-  }, [pickupSlot, availablePickupWindows])
+    if (scheduleSlot && !availableFixedSlots.some((w) => w.value === scheduleSlot)) setScheduleSlot('')
+  }, [scheduleSlot, availableFixedSlots])
 
   const applyAddress = (a: Address) => {
     if (nameRef.current) nameRef.current.value = a.recipient_name || user?.name || ''
@@ -219,8 +184,8 @@ function Checkout() {
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault()
     if (items.length === 0) return
-    if (fulfillmentMethod === 'pickup' && !pickupSlot) {
-      toast.error(t('checkout.pickAPickupTime'))
+    if (fulfillmentMethod === 'delivery' && schedMode === 'schedule' && !scheduleSlot) {
+      toast.error(t('checkout.pickASlot'))
       return
     }
     if (scheduledAt && new Date(scheduledAt).getTime() <= Date.now()) {
@@ -453,7 +418,7 @@ function Checkout() {
               </label>
             )}
 
-            {fulfillmentMethod === 'delivery' ? (
+            {fulfillmentMethod === 'delivery' && (
               <div className="sm:col-span-2">
                 <label className={labelCls}>{t('checkout.deliveryTime')}</label>
                 <div className="mt-1.5 grid grid-cols-2 gap-2">
@@ -481,71 +446,27 @@ function Checkout() {
                 </div>
 
                 {schedMode === 'schedule' && (
-                  <div className="mt-3 grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1 block text-xs text-ink-soft">{t('checkout.date')}</label>
-                      <input
-                        type="date"
-                        min={localToday()}
-                        value={schedDate}
-                        onChange={(e) => {
-                          const v = e.target.value
-                          if (v && v < localToday()) {
-                            toast.error('Please choose today or a later date.')
-                            return
-                          }
-                          setSchedDate(v)
-                        }}
-                        className={cn(inputCls, 'bg-white')}
-                      />
+                  <div className="mt-3">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {availableFixedSlots.map((w) => (
+                        <button
+                          key={w.value}
+                          type="button"
+                          onClick={() => setScheduleSlot(w.value)}
+                          className={cn(
+                            'rounded-xl border px-3 py-2.5 text-xs font-medium transition',
+                            scheduleSlot === w.value
+                              ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
+                              : 'border-leaf-200 text-ink-soft hover:bg-white',
+                          )}
+                        >
+                          {w.label}
+                        </button>
+                      ))}
                     </div>
-                    <div>
-                      <label className="mb-1 block text-xs text-ink-soft">{t('checkout.time')}</label>
-                      <select
-                        value={schedTime}
-                        onChange={(e) => setSchedTime(e.target.value)}
-                        disabled={!schedDate || availableSlots.length === 0}
-                        className={cn(inputCls, 'bg-white')}
-                      >
-                        <option value="">{t('checkout.pickTime')}</option>
-                        {availableSlots.map((slot) => (
-                          <option key={slot} value={slot}>
-                            {timeLabel(slot)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    {isToday && availableSlots.length === 0 ? (
-                      <p className="col-span-2 text-xs text-tomato-600">{t('checkout.noSlotsToday')}</p>
-                    ) : (
-                      (!schedDate || !schedTime) && (
-                        <p className="col-span-2 text-xs text-ink-soft">{t('checkout.pickDateTime')}</p>
-                      )
-                    )}
+                    {!scheduleSlot && <p className="mt-2 text-xs text-ink-soft">{t('checkout.pickASlot')}</p>}
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="sm:col-span-2">
-                <label className={labelCls}>{t('checkout.pickupTime')}</label>
-                <div className="mt-1.5 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {availablePickupWindows.map((w) => (
-                    <button
-                      key={w.value}
-                      type="button"
-                      onClick={() => setPickupSlot(w.value)}
-                      className={cn(
-                        'rounded-xl border px-3 py-2.5 text-xs font-medium transition',
-                        pickupSlot === w.value
-                          ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
-                          : 'border-leaf-200 text-ink-soft hover:bg-white',
-                      )}
-                    >
-                      {w.label}
-                    </button>
-                  ))}
-                </div>
-                {!pickupSlot && <p className="mt-2 text-xs text-ink-soft">{t('checkout.pickAPickupTime')}</p>}
               </div>
             )}
           </div>
