@@ -7,6 +7,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { useMyAddresses } from '@/hooks/use-products'
 import { saveAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/data/addresses'
 import { Modal } from '@/components/admin/modal'
+import { LocationPickerModal } from '@/components/location-picker-modal'
+import type { Coords } from '@/components/location-picker-modal'
 import { useI18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { Address } from '@/lib/types'
@@ -47,7 +49,7 @@ function MyAddresses() {
   const [editing, setEditing] = useState<Address | 'new' | null>(null)
   const [form, setForm] = useState<AddressForm>(emptyForm)
   const [saving, setSaving] = useState(false)
-  const [locating, setLocating] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['my-addresses'] })
 
@@ -111,46 +113,16 @@ function MyAddresses() {
     }
   }
 
-  const captureLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error(t('checkout.locationUnsupported'))
-      return
-    }
-    setLocating(true)
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
-          )
-          const data: {
-            display_name?: string
-            address?: { city?: string; town?: string; village?: string; suburb?: string; county?: string }
-          } = await res.json()
-          const addr = data.address ?? {}
-          const city = addr.city || addr.town || addr.village || addr.suburb || addr.county
-          setForm((f) => ({
-            ...f,
-            location_lat: lat,
-            location_lng: lng,
-            address: data.display_name || f.address,
-            city: f.city || city || f.city,
-          }))
-        } catch {
-          // Geocoding failed — coordinates are still saved; the typed address stands.
-          setForm((f) => ({ ...f, location_lat: lat, location_lng: lng }))
-        }
-        setLocating(false)
-        toast.success(t('checkout.locationSuccess'))
-      },
-      (err) => {
-        setLocating(false)
-        toast.error(err.code === err.PERMISSION_DENIED ? t('checkout.locationDenied') : t('checkout.locationError'))
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
+  const handlePinConfirm = (coords: Coords, info: { display_name?: string; city?: string }) => {
+    setForm((f) => ({
+      ...f,
+      location_lat: coords.lat,
+      location_lng: coords.lng,
+      address: info.display_name || f.address,
+      city: f.city || info.city || f.city,
+    }))
+    setPickerOpen(false)
+    toast.success(t('checkout.locationSuccess'))
   }
 
   if (authLoading) {
@@ -302,12 +274,11 @@ function MyAddresses() {
                 />
                 <button
                   type="button"
-                  onClick={captureLocation}
-                  disabled={locating}
-                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-leaf-200 px-3.5 py-2 text-sm font-medium text-ink hover:bg-leaf-100 disabled:opacity-60"
+                  onClick={() => setPickerOpen(true)}
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-leaf-200 px-3.5 py-2 text-sm font-medium text-ink hover:bg-leaf-100"
                 >
                   <MapPin className="h-4 w-4" />
-                  {locating ? t('checkout.locating') : form.location_lat != null ? t('checkout.pinned') : t('checkout.pinLocation')}
+                  {form.location_lat != null ? t('checkout.pinned') : t('checkout.pinLocation')}
                 </button>
               </div>
               {form.location_lat != null && (
@@ -346,6 +317,13 @@ function MyAddresses() {
           </div>
         </form>
       </Modal>
+
+      <LocationPickerModal
+        open={pickerOpen}
+        initialCoords={form.location_lat != null && form.location_lng != null ? { lat: form.location_lat, lng: form.location_lng } : null}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={handlePinConfirm}
+      />
     </div>
   )
 }

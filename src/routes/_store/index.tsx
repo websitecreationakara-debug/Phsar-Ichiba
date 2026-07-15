@@ -1,19 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Truck, Leaf, ShieldCheck, Clock } from 'lucide-react'
 import { useHeroSlides, useCategories, useProducts } from '@/hooks/use-products'
-import { useI18n, localizedCategoryName, type I18nKey } from '@/lib/i18n'
+import { useI18n, localizedCategoryName } from '@/lib/i18n'
 import { HeroCarousel } from '@/components/hero-carousel'
 import { ProductCard } from '@/components/product-card'
 import { categoryArt } from '@/lib/category-art'
 
 export const Route = createFileRoute('/_store/')({ component: Home })
-
-const PERKS: { icon: typeof Leaf; titleKey: I18nKey; bodyKey: I18nKey }[] = [
-  { icon: Leaf, titleKey: 'home.perk1.title', bodyKey: 'home.perk1.body' },
-  { icon: Truck, titleKey: 'home.perk2.title', bodyKey: 'home.perk2.body' },
-  { icon: ShieldCheck, titleKey: 'home.perk3.title', bodyKey: 'home.perk3.body' },
-  { icon: Clock, titleKey: 'home.perk4.title', bodyKey: 'home.perk4.body' },
-]
 
 function Home() {
   const { data: slides } = useHeroSlides()
@@ -28,19 +20,6 @@ function Home() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <HeroCarousel slides={slides ?? []} />
-
-      <section className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {PERKS.map((perk) => (
-          <div
-            key={perk.titleKey}
-            className="flex flex-col items-center gap-2 rounded-2xl border border-leaf-100 bg-white p-4 text-center"
-          >
-            <perk.icon className="h-6 w-6 text-leaf-600" strokeWidth={1.75} />
-            <p className="font-display text-sm font-semibold text-ink">{t(perk.titleKey)}</p>
-            <p className="text-xs text-ink-soft">{t(perk.bodyKey)}</p>
-          </div>
-        ))}
-      </section>
 
       <section className="mt-12">
         <h2 className="font-display text-2xl font-bold text-ink">{t('home.shopByCategory')}</h2>
