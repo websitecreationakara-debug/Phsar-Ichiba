@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useAuth } from "@/hooks/use-auth";
 import { Modal } from "@/components/admin/modal";
-import { Ban, Check, KeyRound, MailCheck, MailX, Trash2, UserPlus } from "lucide-react";
+import { Ban, Check, KeyRound, MailCheck, MailX, Search, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +77,7 @@ function UsersAdmin() {
   const [newPassword, setNewPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
@@ -93,13 +94,27 @@ function UsersAdmin() {
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin-users"] });
 
-  const filteredUsers = roleFilter === "all" ? users : users.filter((u) => (u.role ?? "user") === roleFilter);
+  const query = search.trim().toLowerCase();
+  const filteredUsers = users
+    .filter((u) => roleFilter === "all" || (u.role ?? "user") === roleFilter)
+    .filter(
+      (u) =>
+        !query ||
+        u.name?.toLowerCase().includes(query) ||
+        u.email.toLowerCase().includes(query) ||
+        u.userNumber?.toLowerCase().includes(query),
+    );
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pagedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const isFiltered = roleFilter !== "all" || query !== "";
 
   const setRoleFilterAndResetPage = (value: string) => {
     setRoleFilter(value);
+    setPage(1);
+  };
+  const setSearchAndResetPage = (value: string) => {
+    setSearch(value);
     setPage(1);
   };
 
@@ -186,10 +201,19 @@ function UsersAdmin() {
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">Users</h1>
           <p className="mt-1 text-ink-soft">
-            {roleFilter === "all" ? `${users.length} total` : `${filteredUsers.length} of ${users.length}`}
+            {isFiltered ? `${filteredUsers.length} of ${users.length}` : `${users.length} total`}
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
+            <input
+              value={search}
+              onChange={(e) => setSearchAndResetPage(e.target.value)}
+              placeholder="Search name, email, or ID"
+              className={cn(inputCls, "h-9 w-60 py-1 pl-9")}
+            />
+          </div>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilterAndResetPage(e.target.value)}
@@ -288,7 +312,7 @@ function UsersAdmin() {
             {!isLoading && filteredUsers.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center text-ink-soft">
-                  {users.length === 0 ? "No users yet" : "No users match this role"}
+                  {users.length === 0 ? "No users yet" : "No users match your search"}
                 </td>
               </tr>
             )}
