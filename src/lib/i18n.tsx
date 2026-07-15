@@ -31,6 +31,11 @@ const ja = {
   "nav.all": "すべて",
   "nav.wishlist": "お気に入り",
   "nav.account": "アカウント",
+
+  "wishlist.title": "お気に入り",
+  "wishlist.itemsSaved": "{count}点保存済み",
+  "wishlist.empty": "お気に入りは空です",
+  "wishlist.emptySub": "気になる商品をお気に入りに保存しましょう。",
   "nav.cart": "カート",
   "nav.allProducts": "すべての商品",
 
@@ -222,6 +227,11 @@ const en: Dict = {
   "nav.account": "Account",
   "nav.cart": "Cart",
   "nav.allProducts": "All products",
+
+  "wishlist.title": "Wishlist",
+  "wishlist.itemsSaved": "{count} items saved",
+  "wishlist.empty": "Your wishlist is empty",
+  "wishlist.emptySub": "Save items you love for later.",
 
   "home.perk1.title": "Picked fresh daily",
   "home.perk1.body": "Sourced from local farms every morning.",

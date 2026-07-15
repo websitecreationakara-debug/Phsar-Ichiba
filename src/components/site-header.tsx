@@ -70,7 +70,7 @@ export function SiteHeader() {
             <span className="hidden sm:inline">{targetLabel}</span>
           </button>
           <Link
-            to="/shop"
+            to="/wishlist"
             className="hidden rounded-full p-2 text-ink hover:bg-leaf-100 sm:flex"
             aria-label={t("nav.wishlist")}
           >
@@ -135,6 +135,10 @@ export function SiteHeader() {
               {localizedCategoryName(c, locale)}
             </Link>
           ))}
+          <Link to="/wishlist" className="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-leaf-100" onClick={() => setMenuOpen(false)}>
+            {t("nav.wishlist")}
+            {wishCount > 0 && <span className="ml-1.5 text-ink-soft">({wishCount})</span>}
+          </Link>
           <Link to="/account" className="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-leaf-100" onClick={() => setMenuOpen(false)}>
             {t("nav.account")}
           </Link>

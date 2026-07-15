@@ -13,7 +13,7 @@ type WishlistCtx = {
 
 const Ctx = createContext<WishlistCtx | null>(null);
 
-const STORAGE = "bosba_wishlist";
+const STORAGE = "verdant_wishlist";
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);
