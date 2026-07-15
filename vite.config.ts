@@ -29,6 +29,7 @@ const clientCloudflareWorkersStub: Plugin = {
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  server: { strictPort: true },
   plugins: [
     devtools(),
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
