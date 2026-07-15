@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useMyAddresses } from '@/hooks/use-products'
 import { saveAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/data/addresses'
 import { Modal } from '@/components/admin/modal'
+import { LocationPicker } from '@/components/location-picker'
 import { useI18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { Address } from '@/lib/types'
@@ -111,6 +112,35 @@ function MyAddresses() {
     }
   }
 
+  // Shared by the GPS button and dragging/clicking the map pin.
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
+      )
+      const data: {
+        display_name?: string
+        address?: { city?: string; town?: string; village?: string; suburb?: string; county?: string }
+      } = await res.json()
+      const addr = data.address ?? {}
+      const city = addr.city || addr.town || addr.village || addr.suburb || addr.county
+      setForm((f) => ({
+        ...f,
+        location_lat: lat,
+        location_lng: lng,
+        address: data.display_name || f.address,
+        city: city || f.city,
+      }))
+    } catch {
+      // Geocoding failed — coordinates are still saved; the typed address stands.
+      setForm((f) => ({ ...f, location_lat: lat, location_lng: lng }))
+    }
+  }
+
+  const handlePinMoved = (lat: number, lng: number) => {
+    reverseGeocode(lat, lng)
+  }
+
   const captureLocation = () => {
     if (!navigator.geolocation) {
       toast.error(t('checkout.locationUnsupported'))
@@ -119,29 +149,7 @@ function MyAddresses() {
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
-          )
-          const data: {
-            display_name?: string
-            address?: { city?: string; town?: string; village?: string; suburb?: string; county?: string }
-          } = await res.json()
-          const addr = data.address ?? {}
-          const city = addr.city || addr.town || addr.village || addr.suburb || addr.county
-          setForm((f) => ({
-            ...f,
-            location_lat: lat,
-            location_lng: lng,
-            address: data.display_name || f.address,
-            city: f.city || city || f.city,
-          }))
-        } catch {
-          // Geocoding failed — coordinates are still saved; the typed address stands.
-          setForm((f) => ({ ...f, location_lat: lat, location_lng: lng }))
-        }
+        await reverseGeocode(pos.coords.latitude, pos.coords.longitude)
         setLocating(false)
         toast.success(t('checkout.locationSuccess'))
       },
@@ -320,6 +328,10 @@ function MyAddresses() {
                   <Check className="h-4 w-4" /> {t('checkout.viewOnMap')}
                 </a>
               )}
+              <p className="mt-2 text-xs text-ink-soft">{t('checkout.dragPinHint')}</p>
+              <div className="mt-2">
+                <LocationPicker lat={form.location_lat} lng={form.location_lng} onChange={handlePinMoved} />
+              </div>
             </div>
             <div className="sm:col-span-2">
               <label className={labelCls}>{t('checkout.city')}</label>
