@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Phone, Mail } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export function SiteFooter() {
@@ -38,12 +38,6 @@ export function SiteFooter() {
           <ul className="mt-3 space-y-2 text-sm text-leaf-200">
             <li className="flex items-center gap-2">
               <MapPin className="h-4 w-4 shrink-0" /> Phnom Penh, Cambodia
-            </li>
-            <li className="flex items-center gap-2">
-              <Phone className="h-4 w-4 shrink-0" /> +855 12 345 678
-            </li>
-            <li className="flex items-center gap-2">
-              <Mail className="h-4 w-4 shrink-0" /> hello@phsarichiba.com
             </li>
           </ul>
         </div>
