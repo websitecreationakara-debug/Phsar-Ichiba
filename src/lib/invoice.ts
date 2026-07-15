@@ -42,11 +42,34 @@ async function loadLogo(): Promise<string | null> {
   }
 }
 
+// jsPDF's built-in fonts (Helvetica etc.) only cover Latin text — product
+// titles, customer names, and addresses are Japanese, so without an embedded
+// Japanese-capable font they render as garbled boxes. Fetched as a plain TTF
+// (not a data URL) since jsPDF's addFileToVFS wants raw base64.
+async function loadJapaneseFontBase64(): Promise<string | null> {
+  try {
+    const res = await fetch("/fonts/NotoSansJP-subset.ttf");
+    if (!res.ok) return null;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    let binary = "";
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    return btoa(binary);
+  } catch {
+    return null;
+  }
+}
+
+const JP_FONT = "NotoSansJP";
+
 async function buildInvoice(order: InvoiceOrder) {
-  const [{ jsPDF }, autoTableMod, logo] = await Promise.all([
+  const [{ jsPDF }, autoTableMod, logo, jpFontBase64] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
     loadLogo(),
+    loadJapaneseFontBase64(),
   ]);
   const autoTable = autoTableMod.default;
 
@@ -55,6 +78,16 @@ async function buildInvoice(order: InvoiceOrder) {
   const pageH = doc.internal.pageSize.getHeight();
   const M = 14;
   const shortId = order.id.slice(0, 8).toUpperCase();
+
+  // All non-bold text uses this — falls back to Helvetica only if the font
+  // fetch failed, in which case Japanese text will still garble, but the rest
+  // of the invoice still renders instead of the whole thing failing.
+  let bodyFont = "helvetica";
+  if (jpFontBase64) {
+    doc.addFileToVFS("NotoSansJP.ttf", jpFontBase64);
+    doc.addFont("NotoSansJP.ttf", JP_FONT, "normal");
+    bodyFont = JP_FONT;
+  }
 
   // ---- Header: logo (left) + INVOICE (right) ----
   let infoY = 20;
@@ -65,7 +98,7 @@ async function buildInvoice(order: InvoiceOrder) {
     infoY = 12 + h + 5;
   }
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont(bodyFont, "normal");
   doc.setFontSize(9);
   doc.setTextColor(120);
   doc.text(STORE.phone, M, infoY);
@@ -75,7 +108,7 @@ async function buildInvoice(order: InvoiceOrder) {
   doc.setTextColor(30);
   doc.text("INVOICE", pageW - M, 20, { align: "right" });
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont(bodyFont, "normal");
   doc.setFontSize(9);
   doc.setTextColor(120);
   doc.text(`Invoice #${shortId}`, pageW - M, 26, { align: "right" });
@@ -95,7 +128,7 @@ async function buildInvoice(order: InvoiceOrder) {
   doc.setTextColor(30);
   doc.text("Bill To", M, 50);
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont(bodyFont, "normal");
   doc.setFontSize(9);
   doc.setTextColor(80);
   const billLines = [
@@ -124,8 +157,11 @@ async function buildInvoice(order: InvoiceOrder) {
       `$${it.price.toFixed(2)}`,
       `$${(it.price * it.qty).toFixed(2)}`,
     ]),
-    styles: { fontSize: 9, cellPadding: 3 },
-    headStyles: { fillColor: BRAND, textColor: [20, 20, 20], fontStyle: "bold" },
+    styles: { font: bodyFont, fontSize: 9, cellPadding: 3 },
+    // Headers are always plain English ("Item", "Qty", ...) — keep them on
+    // Helvetica bold rather than the Japanese font, which only has a normal
+    // weight registered.
+    headStyles: { font: "helvetica", fillColor: BRAND, textColor: [20, 20, 20], fontStyle: "bold" },
     columnStyles: {
       1: { halign: "center", cellWidth: 20 },
       2: { halign: "right", cellWidth: 32 },
