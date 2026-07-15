@@ -500,6 +500,17 @@ function Checkout() {
             const unit = itemUnitPrice(item)
             return (
               <div key={key} className="flex items-center gap-2 text-sm">
+                {item.product.image_url ? (
+                  <img
+                    src={item.product.image_url}
+                    alt={item.product.title}
+                    className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-leaf-100">
+                    <ShoppingBasket className="h-4 w-4 text-leaf-400" strokeWidth={1.5} />
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-ink">
                     {item.product.title}
