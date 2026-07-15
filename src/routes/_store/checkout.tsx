@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { MapPin, Check, Tag, X, Zap, CalendarClock, Minus, Plus, Trash2, ShoppingBasket } from 'lucide-react'
+import { MapPin, Check, Tag, X, Zap, CalendarClock, Minus, Plus, Trash2, ShoppingBasket, Truck, Store } from 'lucide-react'
 import { useCart, itemKey, itemUnitPrice } from '@/hooks/use-cart'
 import { useAuth } from '@/hooks/use-auth'
 import { useMyAddresses } from '@/hooks/use-products'
@@ -37,9 +37,42 @@ const slotMinutes = (t: string) => {
   return h * 60 + m
 }
 const LEAD_MINUTES = 30
-const localToday = () => {
+const localDate = (dayOffset = 0) => {
   const d = new Date()
+  d.setDate(d.getDate() + dayOffset)
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+}
+const localToday = () => localDate(0)
+
+// Fixed 2-hour store-pickup windows — today's remaining afternoon slots, then
+// tomorrow morning through mid-afternoon. Unlike delivery's rolling half-hour
+// slots, pickup windows are a fixed daily schedule set by the store.
+const PICKUP_WINDOWS: { dayOffset: 0 | 1; startHour: number }[] = [
+  { dayOffset: 0, startHour: 13 },
+  { dayOffset: 0, startHour: 14 },
+  { dayOffset: 0, startHour: 15 },
+  { dayOffset: 0, startHour: 16 },
+  { dayOffset: 0, startHour: 17 },
+  { dayOffset: 1, startHour: 9 },
+  { dayOffset: 1, startHour: 10 },
+  { dayOffset: 1, startHour: 11 },
+  { dayOffset: 1, startHour: 12 },
+  { dayOffset: 1, startHour: 13 },
+  { dayOffset: 1, startHour: 14 },
+  { dayOffset: 1, startHour: 15 },
+]
+const hour12Label = (h: number) => {
+  const h12 = h % 12 === 0 ? 12 : h % 12
+  return `${h12}:00${h < 12 ? 'AM' : 'PM'}`
+}
+const pickupWindows = (dayLabel: (dayOffset: 0 | 1) => string) => {
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes()
+  return PICKUP_WINDOWS.filter((w) => w.dayOffset !== 0 || w.startHour * 60 >= nowMinutes + LEAD_MINUTES).map(
+    (w) => ({
+      value: `${localDate(w.dayOffset)}T${String(w.startHour).padStart(2, '0')}:00`,
+      label: `${dayLabel(w.dayOffset)} ${hour12Label(w.startHour)}-${hour12Label(w.startHour + 2)}`,
+    }),
+  )
 }
 
 export const Route = createFileRoute('/_store/checkout')({ component: Checkout })
@@ -68,8 +101,15 @@ function Checkout() {
   const [schedTime, setSchedTime] = useState('')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [saveNewAddress, setSaveNewAddress] = useState(false)
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<'delivery' | 'pickup'>('delivery')
+  const [pickupSlot, setPickupSlot] = useState('')
   const appliedDefault = useRef(false)
-  const scheduledAt = schedMode === 'schedule' && schedDate && schedTime ? `${schedDate}T${schedTime}` : null
+  const scheduledAt =
+    fulfillmentMethod === 'pickup'
+      ? pickupSlot || null
+      : schedMode === 'schedule' && schedDate && schedTime
+        ? `${schedDate}T${schedTime}`
+        : null
 
   const isToday = schedDate === localToday()
   const earliestToday = (() => {
@@ -77,10 +117,17 @@ function Checkout() {
     return d.getHours() * 60 + d.getMinutes() + LEAD_MINUTES
   })()
   const availableSlots = isToday ? TIME_SLOTS.filter((slot) => slotMinutes(slot) >= earliestToday) : TIME_SLOTS
+  const availablePickupWindows = pickupWindows((dayOffset) =>
+    dayOffset === 0 ? t('checkout.today') : t('checkout.tomorrow'),
+  )
 
   useEffect(() => {
     if (schedTime && !availableSlots.includes(schedTime)) setSchedTime('')
   }, [schedTime, availableSlots])
+
+  useEffect(() => {
+    if (pickupSlot && !availablePickupWindows.some((w) => w.value === pickupSlot)) setPickupSlot('')
+  }, [pickupSlot, availablePickupWindows])
 
   const applyAddress = (a: Address) => {
     if (nameRef.current) nameRef.current.value = a.recipient_name || user?.name || ''
@@ -110,7 +157,7 @@ function Checkout() {
 
   const discount = applied ? promoCodeDiscount(applied.type, applied.value, subtotal) : 0
   const discountedSubtotal = Math.max(0, subtotal - discount)
-  const shipping = discountedSubtotal === 0 ? 0 : SHIPPING_FEE
+  const shipping = fulfillmentMethod === 'pickup' || discountedSubtotal === 0 ? 0 : SHIPPING_FEE
   const total = discountedSubtotal + shipping
 
   const applyCode = async () => {
@@ -172,6 +219,10 @@ function Checkout() {
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault()
     if (items.length === 0) return
+    if (fulfillmentMethod === 'pickup' && !pickupSlot) {
+      toast.error(t('checkout.pickAPickupTime'))
+      return
+    }
     if (scheduledAt && new Date(scheduledAt).getTime() <= Date.now()) {
       toast.error(t('checkout.pastTime'))
       return
@@ -192,13 +243,14 @@ function Checkout() {
           customer_name: customerName,
           customer_email: customerEmail,
           customer_phone: phoneRef.current?.value ?? '',
-          address: addressRef.current?.value ?? '',
-          city: cityRef.current?.value ?? '',
-          location_lat: coords?.lat ?? null,
-          location_lng: coords?.lng ?? null,
+          address: fulfillmentMethod === 'pickup' ? '' : (addressRef.current?.value ?? ''),
+          city: fulfillmentMethod === 'pickup' ? '' : (cityRef.current?.value ?? ''),
+          location_lat: fulfillmentMethod === 'pickup' ? null : (coords?.lat ?? null),
+          location_lng: fulfillmentMethod === 'pickup' ? null : (coords?.lng ?? null),
           promo_code: applied?.code ?? null,
           scheduled_at: scheduledAt,
           payment_method: 'cod',
+          fulfillment_method: fulfillmentMethod,
         },
       })
     } catch (err) {
@@ -208,7 +260,7 @@ function Checkout() {
     }
     setSubmitting(false)
 
-    if (user && selectedAddressId === null && saveNewAddress) {
+    if (fulfillmentMethod === 'delivery' && user && selectedAddressId === null && saveNewAddress) {
       try {
         await saveAddress({
           data: {
@@ -266,7 +318,37 @@ function Checkout() {
         <section className="space-y-4 rounded-2xl bg-leaf-50 p-6">
           <h2 className="font-display text-lg font-semibold text-ink">{t('checkout.deliveryDetails')}</h2>
 
-          {user && addresses.length > 0 && (
+          <div>
+            <label className={labelCls}>{t('checkout.fulfillmentMethod')}</label>
+            <div className="mt-1.5 grid grid-cols-2 gap-2">
+              {(
+                [
+                  { key: 'delivery', label: t('checkout.delivery'), icon: Truck },
+                  { key: 'pickup', label: t('checkout.pickup'), icon: Store },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setFulfillmentMethod(opt.key)}
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition',
+                    fulfillmentMethod === opt.key
+                      ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
+                      : 'border-leaf-200 text-ink-soft hover:bg-white',
+                  )}
+                >
+                  <opt.icon className="h-4 w-4" />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {fulfillmentMethod === 'pickup' && (
+              <p className="mt-2 text-xs text-ink-soft">{t('checkout.pickupNote')}</p>
+            )}
+          </div>
+
+          {fulfillmentMethod === 'delivery' && user && addresses.length > 0 && (
             <div className="space-y-2">
               <label className={labelCls}>{t('checkout.savedAddresses')}</label>
               <div className="flex flex-wrap gap-2">
@@ -321,41 +403,45 @@ function Checkout() {
               <label className={labelCls}>{t('checkout.phone')}</label>
               <input ref={phoneRef} required type="tel" placeholder={t('checkout.phonePlaceholder')} className={inputCls} />
             </div>
-            <div className="sm:col-span-2">
-              <label className={labelCls}>{t('checkout.address')}</label>
-              <div className="flex gap-2">
-                <input
-                  ref={addressRef}
-                  required
-                  placeholder={t('checkout.addressPlaceholder')}
-                  className={cn(inputCls, 'min-w-0 flex-1')}
-                />
-                <button
-                  type="button"
-                  onClick={captureLocation}
-                  disabled={locating}
-                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-leaf-200 px-3.5 py-2 text-sm font-medium text-ink hover:bg-leaf-100 disabled:opacity-60"
-                >
-                  <MapPin className="h-4 w-4" />
-                  {locating ? t('checkout.locating') : coords ? t('checkout.pinned') : t('checkout.pinLocation')}
-                </button>
+            {fulfillmentMethod === 'delivery' && (
+              <div className="sm:col-span-2">
+                <label className={labelCls}>{t('checkout.address')}</label>
+                <div className="flex gap-2">
+                  <input
+                    ref={addressRef}
+                    required
+                    placeholder={t('checkout.addressPlaceholder')}
+                    className={cn(inputCls, 'min-w-0 flex-1')}
+                  />
+                  <button
+                    type="button"
+                    onClick={captureLocation}
+                    disabled={locating}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-leaf-200 px-3.5 py-2 text-sm font-medium text-ink hover:bg-leaf-100 disabled:opacity-60"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    {locating ? t('checkout.locating') : coords ? t('checkout.pinned') : t('checkout.pinLocation')}
+                  </button>
+                </div>
+                {coords && (
+                  <a
+                    href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-leaf-700 hover:underline"
+                  >
+                    <Check className="h-4 w-4" /> {t('checkout.viewOnMap')}
+                  </a>
+                )}
               </div>
-              {coords && (
-                <a
-                  href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-leaf-700 hover:underline"
-                >
-                  <Check className="h-4 w-4" /> {t('checkout.viewOnMap')}
-                </a>
-              )}
-            </div>
-            <div className="sm:col-span-2">
-              <label className={labelCls}>{t('checkout.city')}</label>
-              <input ref={cityRef} required className={inputCls} />
-            </div>
-            {user && selectedAddressId === null && (
+            )}
+            {fulfillmentMethod === 'delivery' && (
+              <div className="sm:col-span-2">
+                <label className={labelCls}>{t('checkout.city')}</label>
+                <input ref={cityRef} required className={inputCls} />
+              </div>
+            )}
+            {fulfillmentMethod === 'delivery' && user && selectedAddressId === null && (
               <label className="flex items-center gap-2 text-sm text-ink sm:col-span-2">
                 <input
                   type="checkbox"
@@ -367,77 +453,101 @@ function Checkout() {
               </label>
             )}
 
-            <div className="sm:col-span-2">
-              <label className={labelCls}>{t('checkout.deliveryTime')}</label>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                {(
-                  [
-                    { key: 'asap', label: t('checkout.asap'), icon: Zap },
-                    { key: 'schedule', label: t('checkout.schedule'), icon: CalendarClock },
-                  ] as const
-                ).map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={() => setSchedMode(opt.key)}
-                    className={cn(
-                      'flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition',
-                      schedMode === opt.key
-                        ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
-                        : 'border-leaf-200 text-ink-soft hover:bg-white',
-                    )}
-                  >
-                    <opt.icon className="h-4 w-4" />
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-
-              {schedMode === 'schedule' && (
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-xs text-ink-soft">{t('checkout.date')}</label>
-                    <input
-                      type="date"
-                      min={localToday()}
-                      value={schedDate}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        if (v && v < localToday()) {
-                          toast.error('Please choose today or a later date.')
-                          return
-                        }
-                        setSchedDate(v)
-                      }}
-                      className={cn(inputCls, 'bg-white')}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-ink-soft">{t('checkout.time')}</label>
-                    <select
-                      value={schedTime}
-                      onChange={(e) => setSchedTime(e.target.value)}
-                      disabled={!schedDate || availableSlots.length === 0}
-                      className={cn(inputCls, 'bg-white')}
+            {fulfillmentMethod === 'delivery' ? (
+              <div className="sm:col-span-2">
+                <label className={labelCls}>{t('checkout.deliveryTime')}</label>
+                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      { key: 'asap', label: t('checkout.asap'), icon: Zap },
+                      { key: 'schedule', label: t('checkout.schedule'), icon: CalendarClock },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setSchedMode(opt.key)}
+                      className={cn(
+                        'flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition',
+                        schedMode === opt.key
+                          ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
+                          : 'border-leaf-200 text-ink-soft hover:bg-white',
+                      )}
                     >
-                      <option value="">{t('checkout.pickTime')}</option>
-                      {availableSlots.map((slot) => (
-                        <option key={slot} value={slot}>
-                          {timeLabel(slot)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {isToday && availableSlots.length === 0 ? (
-                    <p className="col-span-2 text-xs text-tomato-600">{t('checkout.noSlotsToday')}</p>
-                  ) : (
-                    (!schedDate || !schedTime) && (
-                      <p className="col-span-2 text-xs text-ink-soft">{t('checkout.pickDateTime')}</p>
-                    )
-                  )}
+                      <opt.icon className="h-4 w-4" />
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
+
+                {schedMode === 'schedule' && (
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs text-ink-soft">{t('checkout.date')}</label>
+                      <input
+                        type="date"
+                        min={localToday()}
+                        value={schedDate}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          if (v && v < localToday()) {
+                            toast.error('Please choose today or a later date.')
+                            return
+                          }
+                          setSchedDate(v)
+                        }}
+                        className={cn(inputCls, 'bg-white')}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs text-ink-soft">{t('checkout.time')}</label>
+                      <select
+                        value={schedTime}
+                        onChange={(e) => setSchedTime(e.target.value)}
+                        disabled={!schedDate || availableSlots.length === 0}
+                        className={cn(inputCls, 'bg-white')}
+                      >
+                        <option value="">{t('checkout.pickTime')}</option>
+                        {availableSlots.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {timeLabel(slot)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {isToday && availableSlots.length === 0 ? (
+                      <p className="col-span-2 text-xs text-tomato-600">{t('checkout.noSlotsToday')}</p>
+                    ) : (
+                      (!schedDate || !schedTime) && (
+                        <p className="col-span-2 text-xs text-ink-soft">{t('checkout.pickDateTime')}</p>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="sm:col-span-2">
+                <label className={labelCls}>{t('checkout.pickupTime')}</label>
+                <div className="mt-1.5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {availablePickupWindows.map((w) => (
+                    <button
+                      key={w.value}
+                      type="button"
+                      onClick={() => setPickupSlot(w.value)}
+                      className={cn(
+                        'rounded-xl border px-3 py-2.5 text-xs font-medium transition',
+                        pickupSlot === w.value
+                          ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
+                          : 'border-leaf-200 text-ink-soft hover:bg-white',
+                      )}
+                    >
+                      {w.label}
+                    </button>
+                  ))}
+                </div>
+                {!pickupSlot && <p className="mt-2 text-xs text-ink-soft">{t('checkout.pickAPickupTime')}</p>}
+              </div>
+            )}
           </div>
         </section>
 

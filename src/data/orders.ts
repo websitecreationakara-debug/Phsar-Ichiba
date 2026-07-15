@@ -28,6 +28,7 @@ type CreateOrderInput = {
   promo_code?: string | null;
   scheduled_at?: string | null;
   payment_method?: string | null;
+  fulfillment_method?: string | null;
 };
 
 // Flat delivery fee charged on every order — this business has no free-delivery tier.
@@ -55,6 +56,7 @@ async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderIt
     location_lat: row.location_lat,
     location_lng: row.location_lng,
     scheduled_at: row.scheduled_at,
+    fulfillment_method: row.fulfillment_method,
   });
 }
 
@@ -206,7 +208,9 @@ export const createOrder = createServerFn({ method: "POST" })
     }
     const discountedSubtotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
 
-    const shipping = discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
+    // Store pickup is always free — the flat fee only applies to delivery.
+    const fulfillment = data.fulfillment_method === "pickup" ? "pickup" : "delivery";
+    const shipping = fulfillment === "pickup" || discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
     const total = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
     // KHQR orders wait in "awaiting_payment" until the gateway confirms; COD
@@ -232,6 +236,7 @@ export const createOrder = createServerFn({ method: "POST" })
         location_lat: data.location_lat ?? null,
         location_lng: data.location_lng ?? null,
         scheduled_at: data.scheduled_at?.trim() || null,
+        fulfillment_method: fulfillment,
       })
       .returning();
 

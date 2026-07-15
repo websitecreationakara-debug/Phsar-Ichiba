@@ -163,6 +163,9 @@ export const orders = sqliteTable("orders", {
   discount: real("discount").notNull().default(0),
   // Optional customer-chosen delivery/pre-order time (datetime-local string). Null = ASAP.
   scheduled_at: text("scheduled_at"),
+  // "delivery" (flat $2.50 fee) | "pickup" (customer collects in-store, free — scheduled_at
+  // is then one of the fixed pickup windows, never null).
+  fulfillment_method: text("fulfillment_method").notNull().default("delivery"),
   // "cod" (cash on delivery) | "khqr" (pay online via the KHQR gateway).
   payment_method: text("payment_method").notNull().default("cod"),
   // "unpaid" | "paid". COD orders stay unpaid until delivery; KHQR orders flip to

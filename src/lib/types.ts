@@ -115,6 +115,7 @@ export type Order = {
   promo_code: string | null;
   discount: number;
   scheduled_at: string | null;
+  fulfillment_method: string;
   payment_method: string;
   payment_status: string;
   payment_ref: string | null;

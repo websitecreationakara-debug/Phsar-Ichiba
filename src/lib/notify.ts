@@ -18,6 +18,7 @@ export type OrderNotification = {
   city?: string | null;
   postal_code?: string | null;
   scheduled_at?: string | null;
+  fulfillment_method?: string | null;
 };
 
 // datetime-local strings ("2026-07-01T14:00") shown as "2026-07-01 14:00".
@@ -67,6 +68,7 @@ const itemRowsHtml = (items: OrderItem[]): string =>
 
 export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   const short = order.id.slice(0, 8);
+  const isPickup = order.fulfillment_method === "pickup";
   const shipTo = [order.address, order.city, order.postal_code].filter(Boolean).join(", ");
   const mapLink = mapsUrl(order);
   const schedule = formatSchedule(order.scheduled_at);
@@ -74,9 +76,9 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
     `Order #${short}`,
     `Customer: ${order.customer_name ?? "—"} (${order.customer_email ?? "—"})`,
     `Phone: ${order.customer_phone ?? "—"}`,
-    `Deliver to: ${shipTo || "—"}`,
-    ...(schedule ? [`🗓️ Scheduled: ${schedule}`] : []),
-    ...(mapLink ? [`📍 Map: ${mapLink}`] : []),
+    isPickup ? "🏪 Store pickup" : `Deliver to: ${shipTo || "—"}`,
+    ...(schedule ? [`🗓️ ${isPickup ? "Pickup" : "Scheduled"}: ${schedule}`] : []),
+    ...(!isPickup && mapLink ? [`📍 Map: ${mapLink}`] : []),
     "Items:",
     ...order.items.map((i) => `  ${i.qty}× ${i.title} — $${(i.price * i.qty).toFixed(2)}`),
     `Total: $${order.total.toFixed(2)}`,
@@ -131,6 +133,7 @@ async function sendEmail(
   try {
     const resend = new Resend(env.RESEND_API_KEY);
     const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
+    const isPickup = order.fulfillment_method === "pickup";
     const rows = itemRowsHtml(order.items);
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
@@ -140,9 +143,9 @@ async function sendEmail(
         <p style="margin:0 0 2px"><strong>Customer:</strong> ${escapeHtml(order.customer_name ?? "—")}</p>
         <p style="margin:0 0 2px"><strong>Email:</strong> ${escapeHtml(order.customer_email ?? "—")}</p>
         <p style="margin:0 0 2px"><strong>Phone:</strong> ${escapeHtml(order.customer_phone ?? "—")}</p>
-        <p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo || "—")}</p>
-        ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 2px"><strong>🗓️ Scheduled:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
-        ${mapsUrl(order) ? `<p style="margin:0 0 16px"><strong>📍 Location:</strong> <a href="${mapsUrl(order)}">Open in Google Maps</a></p>` : ""}
+        ${isPickup ? `<p style="margin:0 0 2px"><strong>🏪 Store pickup</strong></p>` : `<p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo || "—")}</p>`}
+        ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 2px"><strong>🗓️ ${isPickup ? "Pickup" : "Scheduled"}:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
+        ${!isPickup && mapsUrl(order) ? `<p style="margin:0 0 16px"><strong>📍 Location:</strong> <a href="${mapsUrl(order)}">Open in Google Maps</a></p>` : ""}
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${rows}</table>
         <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
       </div>`;
@@ -218,8 +221,8 @@ async function sendCustomerEmail(
         <h2 style="margin:0 0 4px">Thank you for your order, ${escapeHtml(name)}! 🙏</h2>
         <p style="margin:0 0 16px;color:#555">We've received your order and will start preparing it for you shortly. Thank you for shopping with us!</p>
         <p style="margin:0 0 2px"><strong>Order #:</strong> ${short}</p>
-        ${shipTo ? `<p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo)}</p>` : ""}
-        ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 16px"><strong>🗓️ Scheduled for:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
+        ${order.fulfillment_method === "pickup" ? `<p style="margin:0 0 2px"><strong>🏪 Store pickup</strong></p>` : shipTo ? `<p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo)}</p>` : ""}
+        ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 16px"><strong>🗓️ ${order.fulfillment_method === "pickup" ? "Pickup time" : "Scheduled for"}:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items)}</table>
         <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
         <p style="margin:24px 0 0;font-size:13px;color:#888">${escapeHtml(siteName())}</p>

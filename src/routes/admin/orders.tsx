@@ -83,12 +83,18 @@ function OrdersAdmin() {
                   <div className="font-medium text-ink">{o.customer_name ?? "—"}</div>
                   {o.customer_email && <div className="text-xs text-ink-soft">{o.customer_email}</div>}
                   {o.customer_phone && <div className="text-xs text-ink-soft">{o.customer_phone}</div>}
-                  {(o.address || o.city || o.postal_code) && (
-                    <div className="text-xs text-ink-soft">
-                      {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}
+                  {o.fulfillment_method === "pickup" ? (
+                    <div className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-leaf-700">
+                      🏪 Store pickup
                     </div>
+                  ) : (
+                    (o.address || o.city || o.postal_code) && (
+                      <div className="text-xs text-ink-soft">
+                        {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}
+                      </div>
+                    )
                   )}
-                  {o.location_lat != null && o.location_lng != null && (
+                  {o.fulfillment_method !== "pickup" && o.location_lat != null && o.location_lng != null && (
                     <a
                       href={`https://www.google.com/maps?q=${o.location_lat},${o.location_lng}`}
                       target="_blank"
