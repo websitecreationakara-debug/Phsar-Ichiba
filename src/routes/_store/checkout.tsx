@@ -19,8 +19,9 @@ import type { Address } from '@/lib/types'
 const SHIPPING_FEE = 1.5
 
 const LEAD_MINUTES = 30
-// Matches the site-wide "order before 4pm for same-day delivery" cutoff —
-// ASAP delivery only makes sense while same-day is still fulfillable.
+// ASAP delivery only runs during store hours: matches the site-wide "order
+// before 4pm for same-day delivery" cutoff, and doesn't open until 8am.
+const ASAP_START_HOUR = 8
 const SAME_DAY_CUTOFF_HOUR = 16
 const localDate = (dayOffset = 0) => {
   const d = new Date()
@@ -81,7 +82,8 @@ function Checkout() {
   const customerNumberRef = useRef<HTMLInputElement>(null)
   const addressRef = useRef<HTMLInputElement>(null)
   const cityRef = useRef<HTMLInputElement>(null)
-  const asapAvailable = new Date().getHours() < SAME_DAY_CUTOFF_HOUR
+  const currentHour = new Date().getHours()
+  const asapAvailable = currentHour >= ASAP_START_HOUR && currentHour < SAME_DAY_CUTOFF_HOUR
   const [schedMode, setSchedMode] = useState<'asap' | 'schedule'>(() => (asapAvailable ? 'asap' : 'schedule'))
   const [scheduleSlot, setScheduleSlot] = useState('')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
