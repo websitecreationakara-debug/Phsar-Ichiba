@@ -174,12 +174,3 @@ export async function downloadInvoice(order: InvoiceOrder) {
   const { doc, shortId } = await buildInvoice(order);
   doc.save(`Phsar-Ichiba-invoice-${shortId}.pdf`);
 }
-
-// Opens the PDF in a new tab via the browser's built-in PDF viewer instead of
-// forcing a download — the better mobile flow, since the customer sees it
-// immediately without hunting through a downloads/file-manager app.
-export async function viewInvoice(order: InvoiceOrder) {
-  const { doc } = await buildInvoice(order);
-  const blobUrl = doc.output("bloburl");
-  window.open(blobUrl.toString(), "_blank");
-}

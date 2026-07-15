@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
-import { CheckCircle2, Eye, FileDown } from 'lucide-react'
+import { CheckCircle2, FileDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { useI18n } from '@/lib/i18n'
 import { formatPrice } from '@/lib/utils'
-import { downloadInvoice, viewInvoice } from '@/lib/invoice'
+import { downloadInvoice } from '@/lib/invoice'
 
 type LastOrder = {
   id: string
@@ -61,36 +61,20 @@ function ThankYou() {
             <span>{t('cart.total')}</span>
             <span>{formatPrice(order.total)}</span>
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await viewInvoice({ ...order, created_at: order.created_at ?? new Date().toISOString() })
-                } catch (err) {
-                  toast.error(err instanceof Error ? err.message : 'Failed to generate invoice')
-                }
-              }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-leaf-200 py-2.5 text-sm font-semibold text-ink hover:bg-white"
-            >
-              <Eye className="h-4 w-4" />
-              {t('thankyou.viewInvoice')}
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await downloadInvoice({ ...order, created_at: order.created_at ?? new Date().toISOString() })
-                } catch (err) {
-                  toast.error(err instanceof Error ? err.message : 'Failed to generate invoice')
-                }
-              }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full border border-leaf-200 py-2.5 text-sm font-semibold text-ink hover:bg-white"
-            >
-              <FileDown className="h-4 w-4" />
-              {t('thankyou.invoice')}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await downloadInvoice({ ...order, created_at: order.created_at ?? new Date().toISOString() })
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Failed to generate invoice')
+              }
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-leaf-200 py-2.5 text-sm font-semibold text-ink hover:bg-white"
+          >
+            <FileDown className="h-4 w-4" />
+            {t('thankyou.invoice')}
+          </button>
         </div>
       )}
 
