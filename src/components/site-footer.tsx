@@ -6,13 +6,13 @@ export function SiteFooter() {
   const { t } = useI18n();
 
   return (
-    <footer className="mt-16 border-t border-leaf-100 bg-leaf-900 text-leaf-50">
+    <footer className="mt-16 border-t border-leaf-200 bg-leaf-100 text-leaf-800">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
         <div>
           <Link to="/" className="inline-flex items-center">
-            <img src="/brand/wordmark-dark.png" alt="Phsar Ichiba" className="h-12 w-auto object-contain" />
+            <img src="/brand/wordmark.png" alt="Phsar Ichiba" className="h-12 w-auto object-contain" />
           </Link>
-          <p className="mt-3 text-sm text-leaf-200">{t("footer.tagline")}</p>
+          <p className="mt-3 text-sm text-leaf-800/70">{t("footer.tagline")}</p>
         </div>
 
         <FooterCol
@@ -34,8 +34,8 @@ export function SiteFooter() {
         />
 
         <div>
-          <h4 className="font-display text-sm font-semibold text-white">{t("footer.getInTouch")}</h4>
-          <ul className="mt-3 space-y-2 text-sm text-leaf-200">
+          <h4 className="font-display text-sm font-semibold text-leaf-900">{t("footer.getInTouch")}</h4>
+          <ul className="mt-3 space-y-2 text-sm text-leaf-800/70">
             <li className="flex items-center gap-2">
               <MapPin className="h-4 w-4 shrink-0" /> Phnom Penh, Cambodia
             </li>
@@ -43,8 +43,8 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-leaf-800 px-4 py-4 text-center text-xs text-leaf-300">
-        © <span className="text-leaf-200">{new Date().getFullYear()}</span> Phsar Ichiba. {t("footer.rights")}
+      <div className="border-t border-leaf-200 px-4 py-4 text-center text-xs text-leaf-800/70">
+        © <span className="font-semibold text-leaf-600">{new Date().getFullYear()}</span> Phsar Ichiba. {t("footer.rights")}
       </div>
     </footer>
   );
@@ -59,11 +59,11 @@ function FooterCol({
 }) {
   return (
     <div>
-      <h4 className="font-display text-sm font-semibold text-white">{title}</h4>
-      <ul className="mt-3 space-y-2 text-sm text-leaf-200">
+      <h4 className="font-display text-sm font-semibold text-leaf-900">{title}</h4>
+      <ul className="mt-3 space-y-2 text-sm text-leaf-800/70">
         {links.map((l) => (
           <li key={l.label}>
-            <Link to={l.to} search={l.search as never} className="transition hover:text-white">
+            <Link to={l.to} search={l.search as never} className="transition hover:text-leaf-900">
               {l.label}
             </Link>
           </li>
