@@ -39,7 +39,7 @@ const nav = [
 ] as const;
 
 function AdminLayout() {
-  const { user, isAdmin, isSales, isMarketing, isStaff, canAccessAdmin, loading } = useAuth();
+  const { user, isAdmin, isSales, isMarketing, isProductManager, isStaff, canAccessAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
 
@@ -64,11 +64,18 @@ function AdminLayout() {
   const marketingPaths = ["/admin/products", "/admin/marketing", "/admin/categories", "/admin/media"];
   const marketingBlocked =
     isMarketing && !isAdmin && path !== "/admin" && !marketingPaths.some((p) => path.startsWith(p));
+  // Product manager is scoped to just products/categories/media — no marketing
+  // (promotions/promo codes), no dashboard, no orders.
+  const productManagerPaths = ["/admin/products", "/admin/categories", "/admin/media"];
+  const productManagerBlocked =
+    isProductManager && !isAdmin && !productManagerPaths.some((p) => path.startsWith(p));
   const visibleNav = isAdmin
     ? nav
     : isMarketing
       ? nav.filter((n) => n.to === "/admin" || marketingPaths.includes(n.to))
-      : nav.filter((n) => n.to === "/admin/orders");
+      : isProductManager
+        ? nav.filter((n) => productManagerPaths.includes(n.to))
+        : nav.filter((n) => n.to === "/admin/orders");
 
   useEffect(() => {
     if (!loading && (!user || !canAccessAdmin)) navigate({ to: "/" });
@@ -77,7 +84,8 @@ function AdminLayout() {
   useEffect(() => {
     if (salesBlocked) navigate({ to: "/admin/orders" });
     else if (marketingBlocked) navigate({ to: "/admin" });
-  }, [salesBlocked, marketingBlocked, navigate]);
+    else if (productManagerBlocked) navigate({ to: "/admin/products" });
+  }, [salesBlocked, marketingBlocked, productManagerBlocked, navigate]);
 
   useEffect(() => {
     // Alert only on an actual increase, never on first load.
@@ -175,7 +183,7 @@ function AdminLayout() {
         </div>
       </aside>
       <main className="flex-1 overflow-x-auto bg-cream p-8">
-        {salesBlocked || marketingBlocked ? (
+        {salesBlocked || marketingBlocked || productManagerBlocked ? (
           <div className="text-ink-soft">Redirecting…</div>
         ) : (
           <Outlet />

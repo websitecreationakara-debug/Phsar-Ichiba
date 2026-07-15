@@ -223,6 +223,7 @@ function UsersAdmin() {
             <option value="user">User</option>
             <option value="sales">Sales</option>
             <option value="marketing">Marketing</option>
+            <option value="product_manager">Product Manager</option>
             <option value="admin">Admin</option>
           </select>
           <BtnPrimary onClick={() => setAddOpen(true)}>
@@ -263,6 +264,7 @@ function UsersAdmin() {
                       <option value="user">User</option>
                       <option value="sales">Sales</option>
                       <option value="marketing">Marketing</option>
+              <option value="product_manager">Product Manager</option>
                       <option value="admin">Admin</option>
                     </select>
                   </td>
@@ -367,6 +369,7 @@ function UsersAdmin() {
               <option value="user">User</option>
               <option value="sales">Sales</option>
               <option value="marketing">Marketing</option>
+              <option value="product_manager">Product Manager</option>
               <option value="admin">Admin</option>
             </select>
           </Field>

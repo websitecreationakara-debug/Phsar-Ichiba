@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { asc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { categories } from "@/db/schema";
-import { requireManager } from "./_auth";
+import { requireCatalogManager } from "./_auth";
 
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
   return getDb().select().from(categories).orderBy(asc(categories.created_at));
@@ -19,7 +19,7 @@ export const createCategory = createServerFn({ method: "POST" })
     }) => d,
   )
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     await getDb().insert(categories).values(data);
     return { ok: true };
   });
@@ -36,7 +36,7 @@ export const updateCategory = createServerFn({ method: "POST" })
     }) => d,
   )
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     const { id, ...fields } = data;
     const set = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
     if (Object.keys(set).length === 0) return { ok: true };
@@ -47,7 +47,7 @@ export const updateCategory = createServerFn({ method: "POST" })
 export const deleteCategory = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     const db = getDb();
     // Detach any children so they don't dangle, then delete the category.
     await db.update(categories).set({ parent_id: null }).where(eq(categories.parent_id, data.id));

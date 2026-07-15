@@ -31,6 +31,16 @@ export async function requireManager(): Promise<SessionUser> {
   return user;
 }
 
+// Narrower than requireManager: admin, marketing, or product_manager. Gates
+// products/categories/media only — product_manager is scoped to just the
+// catalog, not promotions/promo codes/analytics (marketing-only extras).
+export async function requireCatalogManager(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "admin" && user.role !== "marketing" && user.role !== "product_manager")
+    throw new Error("Forbidden: catalog manager only");
+  return user;
+}
+
 // Admin or sales — sales staff are scoped to order handling only.
 export async function requireStaff(): Promise<SessionUser> {
   const user = await requireUser();

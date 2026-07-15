@@ -4,7 +4,7 @@ import { getDb } from "@/db";
 import { products, product_variations, promotions } from "@/db/schema";
 import { slugify, isUuid } from "@/lib/utils";
 import { applyPromo } from "@/lib/promotions";
-import { requireManager } from "./_auth";
+import { requireCatalogManager } from "./_auth";
 
 type ProductInput = {
   title: string;
@@ -144,7 +144,7 @@ export const getVariations = createServerFn({ method: "GET" })
 export const saveVariations = createServerFn({ method: "POST" })
   .inputValidator((d: { productId: string; variations: VariationInput[] }) => d)
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     const db = getDb();
     const existing = await db
       .select({ id: product_variations.id })
@@ -175,7 +175,7 @@ export const saveVariations = createServerFn({ method: "POST" })
 export const createProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput) => d)
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     const [row] = await getDb().insert(products).values(data).returning({ id: products.id });
     return { id: row.id };
   });
@@ -185,7 +185,7 @@ export const createProduct = createServerFn({ method: "POST" })
 export const setProductStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; status: string }) => d)
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     await getDb()
       .update(products)
       .set({ status: data.status, updated_at: new Date().toISOString() })
@@ -196,7 +196,7 @@ export const setProductStatus = createServerFn({ method: "POST" })
 export const updateProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput & { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     const { id, ...rest } = data;
     await getDb()
       .update(products)
@@ -210,7 +210,7 @@ export const updateProduct = createServerFn({ method: "POST" })
 export const reorderProducts = createServerFn({ method: "POST" })
   .inputValidator((d: { ids: string[] }) => d)
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     const db = getDb();
     await Promise.all(
       data.ids.map((id, i) =>
@@ -223,7 +223,7 @@ export const reorderProducts = createServerFn({ method: "POST" })
 export const deleteProduct = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireManager();
+    await requireCatalogManager();
     const db = getDb();
     await db.delete(product_variations).where(eq(product_variations.product_id, data.id));
     await db.delete(products).where(eq(products.id, data.id));
