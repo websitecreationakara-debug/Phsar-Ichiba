@@ -44,7 +44,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-leaf-800 px-4 py-4 text-center text-xs text-leaf-300">
-        © {new Date().getFullYear()} Phsar Ichiba. {t("footer.rights")}
+        © <span className="text-leaf-200">{new Date().getFullYear()}</span> Phsar Ichiba. {t("footer.rights")}
       </div>
     </footer>
   );
