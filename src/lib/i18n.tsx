@@ -31,7 +31,7 @@ const ja = {
   "root.title": "プサール・イチバ — フレッシュマーケット",
   "root.description": "新鮮な野菜・果物・日用食品を毎日収穫し、迅速にお届けします。",
 
-  "bar.delivery": "午後6時までのご注文で当日配送。",
+  "bar.delivery": "午後4時までのご注文で当日配送。",
 
   "nav.searchPlaceholder": "野菜、果物などを検索…",
   "nav.all": "すべて",
@@ -48,7 +48,7 @@ const ja = {
   "home.perk1.title": "毎日新鮮に収穫",
   "home.perk1.body": "毎朝、地元の農家から仕入れています。",
   "home.perk2.title": "当日配送",
-  "home.perk2.body": "午後6時までのご注文で当日お届け。",
+  "home.perk2.body": "午後4時までのご注文で当日お届け。",
   "home.perk3.title": "品質保証",
   "home.perk3.body": "ご満足いただけない場合は、責任を持って対応いたします。",
   "home.perk4.title": "年中無休",
@@ -285,7 +285,7 @@ const en: Dict = {
   "root.title": "Phsar Ichiba — Fresh Market",
   "root.description": "Fresh vegetables, fruit, and everyday groceries, picked daily and delivered fast.",
 
-  "bar.delivery": "Order before 6pm for same-day delivery.",
+  "bar.delivery": "Order before 4pm for same-day delivery.",
 
   "nav.searchPlaceholder": "Search fresh vegetables, fruit, and more…",
   "nav.all": "All",
@@ -302,7 +302,7 @@ const en: Dict = {
   "home.perk1.title": "Picked fresh daily",
   "home.perk1.body": "Sourced from local farms every morning.",
   "home.perk2.title": "Same-day delivery",
-  "home.perk2.body": "Order before 6pm, delivered today.",
+  "home.perk2.body": "Order before 4pm, delivered today.",
   "home.perk3.title": "Quality guaranteed",
   "home.perk3.body": "Not happy? We'll make it right.",
   "home.perk4.title": "Open every day",
