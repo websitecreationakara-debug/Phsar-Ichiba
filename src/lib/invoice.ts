@@ -19,16 +19,16 @@ export type InvoiceOrder = {
 };
 
 const STORE = {
-  name: "BOSBA Premium Foods",
-  phone: "+855 99 361 350",
-  site: "bosbapremiumfoods.com",
+  name: "Phsar Ichiba",
+  phone: "023-966-313",
 };
 
-const BRAND: [number, number, number] = [201, 168, 76];
+// leaf-600, the storefront's primary brand green.
+const BRAND: [number, number, number] = [59, 125, 32];
 
 async function loadLogo(): Promise<string | null> {
   try {
-    const res = await fetch("/invoice-logo.png");
+    const res = await fetch("/brand/wordmark.png");
     if (!res.ok) return null;
     const blob = await res.blob();
     return await new Promise((resolve) => {
@@ -42,7 +42,7 @@ async function loadLogo(): Promise<string | null> {
   }
 }
 
-export async function downloadInvoice(order: InvoiceOrder) {
+async function buildInvoice(order: InvoiceOrder) {
   const [{ jsPDF }, autoTableMod, logo] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
@@ -60,7 +60,7 @@ export async function downloadInvoice(order: InvoiceOrder) {
   let infoY = 20;
   if (logo) {
     const w = 50;
-    const h = w * (90 / 312); // preserve the logo's aspect ratio
+    const h = w * (311 / 562); // preserve the wordmark's aspect ratio
     doc.addImage(logo, "PNG", M, 12, w, h);
     infoY = 12 + h + 5;
   }
@@ -69,7 +69,6 @@ export async function downloadInvoice(order: InvoiceOrder) {
   doc.setFontSize(9);
   doc.setTextColor(120);
   doc.text(STORE.phone, M, infoY);
-  doc.text(STORE.site, M, infoY + 4);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
@@ -165,5 +164,22 @@ export async function downloadInvoice(order: InvoiceOrder) {
   doc.setTextColor(150);
   doc.text(`Thank you for your order!  ·  ${STORE.name}`, M, pageH - 14);
 
-  doc.save(`BOSBA-invoice-${shortId}.pdf`);
+  return { doc, shortId };
+}
+
+// Saves the PDF to disk — the usual desktop flow, but on mobile it lands in
+// Downloads with no easy way to look at it, since there's no file browser UI
+// built into most mobile browsers' download flow.
+export async function downloadInvoice(order: InvoiceOrder) {
+  const { doc, shortId } = await buildInvoice(order);
+  doc.save(`Phsar-Ichiba-invoice-${shortId}.pdf`);
+}
+
+// Opens the PDF in a new tab via the browser's built-in PDF viewer instead of
+// forcing a download — the better mobile flow, since the customer sees it
+// immediately without hunting through a downloads/file-manager app.
+export async function viewInvoice(order: InvoiceOrder) {
+  const { doc } = await buildInvoice(order);
+  const blobUrl = doc.output("bloburl");
+  window.open(blobUrl.toString(), "_blank");
 }

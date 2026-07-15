@@ -145,6 +145,7 @@ const ja = {
   "thankyou.emailNotice": "確認メールを間もなくお送りします。",
   "thankyou.contactNotice": "確認のご連絡を差し上げます。",
   "thankyou.orderRef": "注文番号",
+  "thankyou.viewInvoice": "請求書を見る",
   "thankyou.invoice": "請求書をダウンロード",
   "thankyou.continueShopping": "買い物を続ける",
 
@@ -334,6 +335,7 @@ const en: Dict = {
   "thankyou.emailNotice": "We'll send a confirmation to your email shortly.",
   "thankyou.contactNotice": "We'll be in touch shortly to confirm.",
   "thankyou.orderRef": "Order reference",
+  "thankyou.viewInvoice": "View invoice",
   "thankyou.invoice": "Download invoice",
   "thankyou.continueShopping": "Continue shopping",
 
