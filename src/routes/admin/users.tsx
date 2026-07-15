@@ -77,6 +77,8 @@ function UsersAdmin() {
   const [newPassword, setNewPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -92,6 +94,14 @@ function UsersAdmin() {
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin-users"] });
 
   const filteredUsers = roleFilter === "all" ? users : users.filter((u) => (u.role ?? "user") === roleFilter);
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const setRoleFilterAndResetPage = (value: string) => {
+    setRoleFilter(value);
+    setPage(1);
+  };
 
   const changeRole = async (userId: string, role: string) => {
     const res = await authClient.admin.setRole({ userId, role: role as "user" | "admin" });
@@ -182,7 +192,7 @@ function UsersAdmin() {
         <div className="flex items-center gap-3">
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
+            onChange={(e) => setRoleFilterAndResetPage(e.target.value)}
             className={cn(inputCls, "h-9 w-36 py-1")}
           >
             <option value="all">All roles</option>
@@ -210,7 +220,7 @@ function UsersAdmin() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((u) => {
+            {pagedUsers.map((u) => {
               const isSelf = u.id === me?.id;
               return (
                 <tr key={u.id} className="border-t border-leaf-100">
@@ -285,6 +295,22 @@ function UsersAdmin() {
           </tbody>
         </table>
       </div>
+
+      {filteredUsers.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-ink-soft">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <BtnOutline onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1}>
+              Previous
+            </BtnOutline>
+            <BtnOutline onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+              Next
+            </BtnOutline>
+          </div>
+        </div>
+      )}
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add user">
         <p className="-mt-2 mb-4 text-sm text-ink-soft">
