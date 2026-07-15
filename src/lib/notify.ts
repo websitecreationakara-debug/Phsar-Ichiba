@@ -22,8 +22,21 @@ export type OrderNotification = {
   fulfillment_method?: string | null;
 };
 
-// datetime-local strings ("2026-07-01T14:00") shown as "2026-07-01 14:00".
-const formatSchedule = (s?: string | null): string | null => (s ? s.replace("T", " ") : null);
+const hour12Label = (h: number): string => {
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:00${h < 12 ? "AM" : "PM"}`;
+};
+
+// Delivery slots are fixed 2-hour windows (see checkout's FIXED_SLOTS), so a
+// datetime-local string like "2026-07-01T14:00" means the 2pm-4pm window —
+// shown as "2026-07-01 2:00PM-4:00PM", not just the start time.
+const formatSchedule = (s?: string | null): string | null => {
+  if (!s) return null;
+  const [datePart, timePart] = s.split("T");
+  const startHour = timePart ? Number(timePart.split(":")[0]) : NaN;
+  if (!datePart || Number.isNaN(startHour)) return s.replace("T", " ");
+  return `${datePart} ${hour12Label(startHour)}-${hour12Label(startHour + 2)}`;
+};
 
 const env: Record<string, string | undefined> = (() => {
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
