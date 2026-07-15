@@ -395,6 +395,12 @@ function Checkout() {
               <input
                 ref={customerNumberRef}
                 required
+                inputMode="numeric"
+                pattern="[0-9]*"
+                onChange={(e) => {
+                  const digitsOnly = e.target.value.replace(/\D/g, '')
+                  if (digitsOnly !== e.target.value) e.target.value = digitsOnly
+                }}
                 placeholder={t('checkout.customerNumberPlaceholder')}
                 className={inputCls}
               />
