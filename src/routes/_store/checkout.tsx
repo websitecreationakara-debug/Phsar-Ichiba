@@ -19,6 +19,9 @@ import type { Address } from '@/lib/types'
 const SHIPPING_FEE = 1.5
 
 const LEAD_MINUTES = 30
+// Matches the site-wide "order before 4pm for same-day delivery" cutoff —
+// ASAP delivery only makes sense while same-day is still fulfillable.
+const SAME_DAY_CUTOFF_HOUR = 16
 const localDate = (dayOffset = 0) => {
   const d = new Date()
   d.setDate(d.getDate() + dayOffset)
@@ -75,9 +78,11 @@ function Checkout() {
   const nameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
+  const customerNumberRef = useRef<HTMLInputElement>(null)
   const addressRef = useRef<HTMLInputElement>(null)
   const cityRef = useRef<HTMLInputElement>(null)
-  const [schedMode, setSchedMode] = useState<'asap' | 'schedule'>('asap')
+  const asapAvailable = new Date().getHours() < SAME_DAY_CUTOFF_HOUR
+  const [schedMode, setSchedMode] = useState<'asap' | 'schedule'>(() => (asapAvailable ? 'asap' : 'schedule'))
   const [scheduleSlot, setScheduleSlot] = useState('')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [saveNewAddress, setSaveNewAddress] = useState(false)
@@ -93,6 +98,10 @@ function Checkout() {
   useEffect(() => {
     if (scheduleSlot && !availableFixedSlots.some((w) => w.value === scheduleSlot)) setScheduleSlot('')
   }, [scheduleSlot, availableFixedSlots])
+
+  useEffect(() => {
+    if (!asapAvailable && schedMode === 'asap') setSchedMode('schedule')
+  }, [asapAvailable, schedMode])
 
   const applyAddress = (a: Address) => {
     if (nameRef.current) nameRef.current.value = a.recipient_name || user?.name || ''
@@ -208,6 +217,7 @@ function Checkout() {
           customer_name: customerName,
           customer_email: customerEmail,
           customer_phone: phoneRef.current?.value ?? '',
+          customer_number: customerNumberRef.current?.value.trim() || null,
           address: fulfillmentMethod === 'pickup' ? '' : (addressRef.current?.value ?? ''),
           city: fulfillmentMethod === 'pickup' ? '' : (cityRef.current?.value ?? ''),
           location_lat: fulfillmentMethod === 'pickup' ? null : (coords?.lat ?? null),
@@ -361,12 +371,21 @@ function Checkout() {
               <input ref={nameRef} required defaultValue={user?.name ?? ''} className={inputCls} />
             </div>
             <div>
-              <label className={labelCls}>{user ? t('checkout.email') : t('checkout.emailOptional')}</label>
-              <input ref={emailRef} required={!!user} type="email" defaultValue={user?.email ?? ''} className={inputCls} />
+              <label className={labelCls}>{t('checkout.email')}</label>
+              <input ref={emailRef} required type="email" defaultValue={user?.email ?? ''} className={inputCls} />
             </div>
             <div className="sm:col-span-2">
               <label className={labelCls}>{t('checkout.phone')}</label>
               <input ref={phoneRef} required type="tel" placeholder={t('checkout.phonePlaceholder')} className={inputCls} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>{t('checkout.customerNumber')}</label>
+              <input
+                ref={customerNumberRef}
+                required
+                placeholder={t('checkout.customerNumberPlaceholder')}
+                className={inputCls}
+              />
             </div>
             {fulfillmentMethod === 'delivery' && (
               <div className="sm:col-span-2">
@@ -421,10 +440,10 @@ function Checkout() {
             {fulfillmentMethod === 'delivery' && (
               <div className="sm:col-span-2">
                 <label className={labelCls}>{t('checkout.deliveryTime')}</label>
-                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                <div className={cn('mt-1.5 grid gap-2', asapAvailable ? 'grid-cols-2' : 'grid-cols-1')}>
                   {(
                     [
-                      { key: 'asap', label: t('checkout.asap'), icon: Zap },
+                      ...(asapAvailable ? [{ key: 'asap', label: t('checkout.asap'), icon: Zap }] as const : []),
                       { key: 'schedule', label: t('checkout.schedule'), icon: CalendarClock },
                     ] as const
                   ).map((opt) => (

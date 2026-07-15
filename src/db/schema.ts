@@ -156,6 +156,11 @@ export const orders = sqliteTable("orders", {
   customer_name: text("customer_name"),
   customer_email: text("customer_email"),
   customer_phone: text("customer_phone"),
+  // Customer-entered ID from the old site (e.g. "0020") — self-reported at
+  // checkout so staff can match orders to a pre-migration customer record.
+  // Distinct from user.userNumber, which is auto-populated only for accounts
+  // that were matched by email during the CSV import.
+  customer_number: text("customer_number"),
   location_lat: real("location_lat"),
   location_lng: real("location_lng"),
   address: text("address"),

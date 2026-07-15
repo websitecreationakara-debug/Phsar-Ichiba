@@ -110,6 +110,7 @@ export type Order = {
   customer_name: string | null;
   customer_email: string | null;
   customer_phone: string | null;
+  customer_number: string | null;
   location_lat: number | null;
   location_lng: number | null;
   address: string | null;

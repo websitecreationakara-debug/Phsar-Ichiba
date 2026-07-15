@@ -21,6 +21,7 @@ type CreateOrderInput = {
   customer_name: string;
   customer_email: string;
   customer_phone: string;
+  customer_number?: string | null;
   address: string;
   city: string;
   location_lat?: number | null;
@@ -50,6 +51,7 @@ async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderIt
     customer_name: row.customer_name,
     customer_email: row.customer_email,
     customer_phone: row.customer_phone,
+    customer_number: row.customer_number,
     address: row.address,
     city: row.city,
     postal_code: row.postal_code,
@@ -231,6 +233,7 @@ export const createOrder = createServerFn({ method: "POST" })
         customer_name: data.customer_name?.trim() || user?.name || null,
         customer_email: data.customer_email?.trim() || user?.email || null,
         customer_phone: data.customer_phone?.trim() || null,
+        customer_number: data.customer_number?.trim() || null,
         address: data.address?.trim() || null,
         city: data.city?.trim() || null,
         location_lat: data.location_lat ?? null,

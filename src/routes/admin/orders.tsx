@@ -83,6 +83,9 @@ function OrdersAdmin() {
                   <div className="font-medium text-ink">{o.customer_name ?? "—"}</div>
                   {o.customer_email && <div className="text-xs text-ink-soft">{o.customer_email}</div>}
                   {o.customer_phone && <div className="text-xs text-ink-soft">{o.customer_phone}</div>}
+                  {o.customer_number && (
+                    <div className="text-xs text-ink-soft">Customer #: {o.customer_number}</div>
+                  )}
                   {o.fulfillment_method === "pickup" ? (
                     <div className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-leaf-700">
                       🏪 Store pickup

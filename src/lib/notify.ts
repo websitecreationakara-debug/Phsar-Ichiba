@@ -12,6 +12,7 @@ export type OrderNotification = {
   customer_name?: string | null;
   customer_email?: string | null;
   customer_phone?: string | null;
+  customer_number?: string | null;
   location_lat?: number | null;
   location_lng?: number | null;
   address?: string | null;
@@ -76,6 +77,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
     `Order #${short}`,
     `Customer: ${order.customer_name ?? "—"} (${order.customer_email ?? "—"})`,
     `Phone: ${order.customer_phone ?? "—"}`,
+    ...(order.customer_number ? [`Customer #: ${order.customer_number}`] : []),
     isPickup ? "🏪 Store pickup" : `Deliver to: ${shipTo || "—"}`,
     ...(schedule ? [`🗓️ ${isPickup ? "Pickup" : "Scheduled"}: ${schedule}`] : []),
     ...(!isPickup && mapLink ? [`📍 Map: ${mapLink}`] : []),
@@ -143,6 +145,7 @@ async function sendEmail(
         <p style="margin:0 0 2px"><strong>Customer:</strong> ${escapeHtml(order.customer_name ?? "—")}</p>
         <p style="margin:0 0 2px"><strong>Email:</strong> ${escapeHtml(order.customer_email ?? "—")}</p>
         <p style="margin:0 0 2px"><strong>Phone:</strong> ${escapeHtml(order.customer_phone ?? "—")}</p>
+        ${order.customer_number ? `<p style="margin:0 0 2px"><strong>Customer #:</strong> ${escapeHtml(order.customer_number)}</p>` : ""}
         ${isPickup ? `<p style="margin:0 0 2px"><strong>🏪 Store pickup</strong></p>` : `<p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo || "—")}</p>`}
         ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 2px"><strong>🗓️ ${isPickup ? "Pickup" : "Scheduled"}:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
         ${!isPickup && mapsUrl(order) ? `<p style="margin:0 0 16px"><strong>📍 Location:</strong> <a href="${mapsUrl(order)}">Open in Google Maps</a></p>` : ""}
