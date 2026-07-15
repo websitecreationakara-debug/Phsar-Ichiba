@@ -87,7 +87,11 @@ export function LocationPicker({
   return (
     <div
       ref={containerRef}
-      className="h-56 w-full overflow-hidden rounded-xl border border-leaf-200"
+      // relative + z-0 gives this its own stacking context, so Leaflet's
+      // internal panes/controls (which use z-index up to 1000 internally)
+      // stay contained here instead of escaping to paint over the sticky
+      // header (z-40) once the page scrolls.
+      className="relative z-0 h-56 w-full overflow-hidden rounded-xl border border-leaf-200"
       // Leaflet needs an explicit non-zero size before it initializes correctly.
       style={{ minHeight: 224 }}
     />
