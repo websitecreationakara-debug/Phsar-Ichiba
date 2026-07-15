@@ -30,7 +30,7 @@ export function getAuth() {
   if (_auth) return _auth;
 
   const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
-  const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
+  const from = env.RESEND_FROM ?? "Phsar Ichiba <onboarding@resend.dev>";
 
   const sendEmail = async (to: string, subject: string, html: string, logLine: string) => {
     if (!resend) {
@@ -67,7 +67,7 @@ export function getAuth() {
       sendResetPassword: async ({ user, url }) => {
         await sendEmail(
           user.email,
-          "Reset your BOSBA password",
+          "Reset your Phsar Ichiba password",
           `<p>Reset your password:</p><p><a href="${url}">${url}</a></p>`,
           url,
         );
@@ -106,7 +106,7 @@ export function getAuth() {
         sendVerificationOTP: async ({ email, otp }) => {
           await sendEmail(
             email,
-            "Your BOSBA verification code",
+            "Your Phsar Ichiba verification code",
             `<p>Your verification code is:</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${otp}</p><p>This code expires in 10 minutes.</p>`,
             `code: ${otp}`,
           );

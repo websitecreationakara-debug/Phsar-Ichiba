@@ -45,7 +45,7 @@ const env: Record<string, string | undefined> = (() => {
 
 // Labels which site an alert came from — lets one bot/inbox serve many sites.
 // Each deployment overrides this via the SITE_NAME env var.
-const siteName = () => env.SITE_NAME?.trim() || "BOSBA Premium Foods";
+const siteName = () => env.SITE_NAME?.trim() || "Phsar Ichiba";
 
 const escapeHtml = (s: string) =>
   s.replace(
@@ -132,7 +132,7 @@ async function sendEmail(
   if (!env.RESEND_API_KEY || to.length === 0) return "skipped";
   try {
     const resend = new Resend(env.RESEND_API_KEY);
-    const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
+    const from = env.RESEND_FROM ?? "Phsar Ichiba <onboarding@resend.dev>";
     const isPickup = order.fulfillment_method === "pickup";
     const rows = itemRowsHtml(order.items);
     const html = `
@@ -178,7 +178,7 @@ export async function notifyOrderShipped(order: ShippedNotification): Promise<vo
   const short = order.id.slice(0, 8);
   try {
     const resend = new Resend(env.RESEND_API_KEY);
-    const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
+    const from = env.RESEND_FROM ?? "Phsar Ichiba <onboarding@resend.dev>";
     const name = order.customer_name?.trim() || "there";
     const track = order.tracking_url?.trim();
     const html = `
@@ -214,7 +214,7 @@ async function sendCustomerEmail(
   if (!env.RESEND_API_KEY || !to) return "skipped";
   try {
     const resend = new Resend(env.RESEND_API_KEY);
-    const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
+    const from = env.RESEND_FROM ?? "Phsar Ichiba <onboarding@resend.dev>";
     const name = order.customer_name?.trim() || "there";
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
