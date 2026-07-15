@@ -28,6 +28,7 @@ import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
 import { Route as StoreCartRouteImport } from './routes/_store/cart'
 import { Route as StoreAddressesRouteImport } from './routes/_store/addresses'
 import { Route as StoreAccountRouteImport } from './routes/_store/account'
+import { Route as StoreSplatRouteImport } from './routes/_store/$'
 import { Route as StoreProductIdRouteImport } from './routes/_store/product.$id'
 
 const AdminRoute = AdminRouteImport.update({
@@ -124,6 +125,11 @@ const StoreAccountRoute = StoreAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreSplatRoute = StoreSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreProductIdRoute = StoreProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
@@ -133,6 +139,7 @@ const StoreProductIdRoute = StoreProductIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/$': typeof StoreSplatRoute
   '/account': typeof StoreAccountRoute
   '/addresses': typeof StoreAddressesRoute
   '/cart': typeof StoreCartRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/product/$id': typeof StoreProductIdRoute
 }
 export interface FileRoutesByTo {
+  '/$': typeof StoreSplatRoute
   '/account': typeof StoreAccountRoute
   '/addresses': typeof StoreAddressesRoute
   '/cart': typeof StoreCartRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_store': typeof StoreRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/_store/$': typeof StoreSplatRoute
   '/_store/account': typeof StoreAccountRoute
   '/_store/addresses': typeof StoreAddressesRoute
   '/_store/cart': typeof StoreCartRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/$'
     | '/account'
     | '/addresses'
     | '/cart'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/$'
     | '/account'
     | '/addresses'
     | '/cart'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_store'
     | '/admin'
+    | '/_store/$'
     | '/_store/account'
     | '/_store/addresses'
     | '/_store/cart'
@@ -400,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreAccountRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/$': {
+      id: '/_store/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof StoreSplatRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/product/$id': {
       id: '/_store/product/$id'
       path: '/product/$id'
@@ -411,6 +430,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface StoreRouteChildren {
+  StoreSplatRoute: typeof StoreSplatRoute
   StoreAccountRoute: typeof StoreAccountRoute
   StoreAddressesRoute: typeof StoreAddressesRoute
   StoreCartRoute: typeof StoreCartRoute
@@ -423,6 +443,7 @@ interface StoreRouteChildren {
 }
 
 const StoreRouteChildren: StoreRouteChildren = {
+  StoreSplatRoute: StoreSplatRoute,
   StoreAccountRoute: StoreAccountRoute,
   StoreAddressesRoute: StoreAddressesRoute,
   StoreCartRoute: StoreCartRoute,

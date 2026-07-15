@@ -145,6 +145,10 @@ const ja = {
   "checkout.emptyCart": "カートが空です",
   "checkout.continueShopping": "買い物を続ける",
 
+  "notFound.title": "ページが見つかりません",
+  "notFound.sub": "お探しのページは存在しないか、移動した可能性があります。",
+  "notFound.backHome": "トップページへ戻る",
+
   "thankyou.thanks": "ありがとうございます{name}！",
   "thankyou.placed": "ご注文を承りました。",
   "thankyou.emailNotice": "確認メールを間もなくお送りします。",
@@ -394,6 +398,10 @@ const en: Dict = {
   "checkout.locationSuccess": "Location pinned — address filled in!",
   "checkout.emptyCart": "Your cart is empty",
   "checkout.continueShopping": "Continue shopping",
+
+  "notFound.title": "Page not found",
+  "notFound.sub": "The page you're looking for doesn't exist or may have moved.",
+  "notFound.backHome": "Back to home",
 
   "thankyou.thanks": "Thank you{name}!",
   "thankyou.placed": "Your order has been placed.",
