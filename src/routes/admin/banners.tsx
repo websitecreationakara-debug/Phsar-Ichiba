@@ -69,6 +69,12 @@ const empty = {
   image_url: "",
   cta_label: "",
   cta_link: "/shop",
+  eyebrow_en: "",
+  title_top_en: "",
+  title_accent_en: "",
+  title_bottom_en: "",
+  body_en: "",
+  cta_label_en: "",
   sort_order: "0",
   active: "true",
 };
@@ -122,6 +128,12 @@ function BannersAdmin() {
       image_url: s.image_url ?? "",
       cta_label: s.cta_label ?? "",
       cta_link: s.cta_link ?? "/shop",
+      eyebrow_en: s.eyebrow_en ?? "",
+      title_top_en: s.title_top_en ?? "",
+      title_accent_en: s.title_accent_en ?? "",
+      title_bottom_en: s.title_bottom_en ?? "",
+      body_en: s.body_en ?? "",
+      cta_label_en: s.cta_label_en ?? "",
       sort_order: String(s.sort_order),
       active: s.active ? "true" : "false",
     });
@@ -139,6 +151,12 @@ function BannersAdmin() {
       image_url: form.image_url || null,
       cta_label: form.cta_label || null,
       cta_link: form.cta_link || "/shop",
+      eyebrow_en: form.eyebrow_en || null,
+      title_top_en: form.title_top_en || null,
+      title_accent_en: form.title_accent_en || null,
+      title_bottom_en: form.title_bottom_en || null,
+      body_en: form.body_en || null,
+      cta_label_en: form.cta_label_en || null,
       sort_order: form.sort_order.trim() === "" ? 0 : Number(form.sort_order),
       active: form.active === "true",
     };
@@ -260,6 +278,63 @@ function BannersAdmin() {
               className={cn(inputCls, "min-h-20")}
             />
           </Field>
+
+          <div className="space-y-4 border-t border-leaf-100 pt-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-ink-soft">
+              English translation (shown when a customer switches to English — falls back to the Japanese text above if left blank)
+            </p>
+            <Field label="Eyebrow (English)">
+              <input
+                value={form.eyebrow_en}
+                onChange={(e) => setForm({ ...form, eyebrow_en: e.target.value })}
+                placeholder="Fresh from the farm"
+                className={inputCls}
+              />
+            </Field>
+            <div className="grid grid-cols-3 gap-4">
+              <Field label="Title — top line (English)">
+                <input
+                  value={form.title_top_en}
+                  onChange={(e) => setForm({ ...form, title_top_en: e.target.value })}
+                  placeholder="Today's pick,"
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Highlighted word (English)">
+                <input
+                  value={form.title_accent_en}
+                  onChange={(e) => setForm({ ...form, title_accent_en: e.target.value })}
+                  placeholder="straight from the market"
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Title — rest (English)">
+                <input
+                  value={form.title_bottom_en}
+                  onChange={(e) => setForm({ ...form, title_bottom_en: e.target.value })}
+                  placeholder="to your door."
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+            <Field label="Body text (English)">
+              <textarea
+                value={form.body_en}
+                onChange={(e) => setForm({ ...form, body_en: e.target.value })}
+                placeholder="Hand-picked vegetables and fruit, sourced daily from local growers."
+                className={cn(inputCls, "min-h-20")}
+              />
+            </Field>
+            <Field label="Button label (English)">
+              <input
+                value={form.cta_label_en}
+                onChange={(e) => setForm({ ...form, cta_label_en: e.target.value })}
+                placeholder="Shop fresh produce"
+                className={inputCls}
+              />
+            </Field>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <Field label="Button label">
               <input

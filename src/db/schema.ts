@@ -29,6 +29,14 @@ export const hero_slides = sqliteTable("hero_slides", {
   image_url: text("image_url"),
   cta_label: text("cta_label"),
   cta_link: text("cta_link").notNull().default("/shop"),
+  // English variants — storefront is Japanese-first; these are optional and
+  // fall back to the Japanese fields above when unset (see localizedHeroSlide()).
+  eyebrow_en: text("eyebrow_en"),
+  title_top_en: text("title_top_en"),
+  title_accent_en: text("title_accent_en"),
+  title_bottom_en: text("title_bottom_en"),
+  body_en: text("body_en"),
+  cta_label_en: text("cta_label_en"),
   sort_order: integer("sort_order").notNull().default(0),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   created_at: text("created_at").notNull().$defaultFn(nowIso),

@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HeroSlide } from "@/lib/types";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localizedHeroField } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const GRADIENTS = ["from-leaf-600 to-leaf-800", "from-carrot-500 to-tomato-600", "from-leaf-500 to-leaf-700"];
 
 export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const [active, setActive] = useState(0);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   useEffect(() => {
     if (slides.length < 2) return;
@@ -18,7 +18,16 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   }, [slides.length]);
 
   if (slides.length === 0) return null;
-  const slide = slides[active];
+  const raw = slides[active];
+  const slide = {
+    ...raw,
+    eyebrow: localizedHeroField(raw.eyebrow, raw.eyebrow_en, locale),
+    title_top: localizedHeroField(raw.title_top, raw.title_top_en, locale),
+    title_accent: localizedHeroField(raw.title_accent, raw.title_accent_en, locale),
+    title_bottom: localizedHeroField(raw.title_bottom, raw.title_bottom_en, locale),
+    body: localizedHeroField(raw.body, raw.body_en, locale),
+    cta_label: localizedHeroField(raw.cta_label, raw.cta_label_en, locale),
+  };
 
   return (
     <section className="relative overflow-hidden rounded-3xl">

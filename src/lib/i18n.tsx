@@ -21,6 +21,12 @@ export function localizedCategoryName(
   return locale === "en" ? c.name_en || c.name : c.name;
 }
 
+// Falls back to the Japanese field when no English translation is set —
+// matches localizedCategoryName's pattern for hero slide text.
+export function localizedHeroField(ja: string | null, en: string | null | undefined, locale: Locale): string | null {
+  return locale === "en" ? en || ja : ja;
+}
+
 const ja = {
   "root.title": "プサール・イチバ — フレッシュマーケット",
   "root.description": "新鮮な野菜・果物・日用食品を毎日収穫し、迅速にお届けします。",

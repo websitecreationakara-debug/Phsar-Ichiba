@@ -66,6 +66,12 @@ export type HeroSlide = {
   image_url: string | null;
   cta_label: string | null;
   cta_link: string;
+  eyebrow_en: string | null;
+  title_top_en: string | null;
+  title_accent_en: string | null;
+  title_bottom_en: string | null;
+  body_en: string | null;
+  cta_label_en: string | null;
   sort_order: number;
   active: boolean;
   created_at: string;
