@@ -518,8 +518,12 @@ function Checkout() {
           <div className="flex items-start gap-3 rounded-xl border border-leaf-600 bg-leaf-100 px-4 py-3">
             <Check className="mt-0.5 h-5 w-5 shrink-0 text-leaf-700" />
             <span>
-              <span className="block text-sm font-semibold text-ink">{t('checkout.cod')}</span>
-              <span className="mt-0.5 block text-xs text-ink-soft">{t('checkout.codDesc')}</span>
+              <span className="block text-sm font-semibold text-ink">
+                {fulfillmentMethod === 'pickup' ? t('checkout.cashOnPickup') : t('checkout.cod')}
+              </span>
+              <span className="mt-0.5 block text-xs text-ink-soft">
+                {fulfillmentMethod === 'pickup' ? t('checkout.cashOnPickupDesc') : t('checkout.codDesc')}
+              </span>
             </span>
           </div>
         </section>
