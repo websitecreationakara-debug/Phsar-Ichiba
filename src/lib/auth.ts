@@ -55,6 +55,11 @@ export function getAuth() {
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins,
     database: drizzleAdapter(getDb(), { provider: "sqlite", schema }),
+    user: {
+      additionalFields: {
+        userNumber: { type: "string", required: false, input: false },
+      },
+    },
     emailAndPassword: {
       enabled: true,
       // Gate sign-in until the email is verified via the OTP code (emailOTP plugin below).

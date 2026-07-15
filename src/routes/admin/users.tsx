@@ -60,6 +60,7 @@ type AdminUser = {
   id: string;
   name: string;
   email: string;
+  userNumber?: string | null;
   role?: string | null;
   banned?: boolean | null;
   emailVerified?: boolean | null;
@@ -75,6 +76,7 @@ function UsersAdmin() {
   const [pwTarget, setPwTarget] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [roleFilter, setRoleFilter] = useState("all");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -88,6 +90,8 @@ function UsersAdmin() {
   });
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin-users"] });
+
+  const filteredUsers = roleFilter === "all" ? users : users.filter((u) => (u.role ?? "user") === roleFilter);
 
   const changeRole = async (userId: string, role: string) => {
     const res = await authClient.admin.setRole({ userId, role: role as "user" | "admin" });
@@ -171,11 +175,26 @@ function UsersAdmin() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-ink">Users</h1>
-          <p className="mt-1 text-ink-soft">{users.length} total</p>
+          <p className="mt-1 text-ink-soft">
+            {roleFilter === "all" ? `${users.length} total` : `${filteredUsers.length} of ${users.length}`}
+          </p>
         </div>
-        <BtnPrimary onClick={() => setAddOpen(true)}>
-          <UserPlus className="h-4 w-4" /> Add user
-        </BtnPrimary>
+        <div className="flex items-center gap-3">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className={cn(inputCls, "h-9 w-36 py-1")}
+          >
+            <option value="all">All roles</option>
+            <option value="user">User</option>
+            <option value="sales">Sales</option>
+            <option value="marketing">Marketing</option>
+            <option value="admin">Admin</option>
+          </select>
+          <BtnPrimary onClick={() => setAddOpen(true)}>
+            <UserPlus className="h-4 w-4" /> Add user
+          </BtnPrimary>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-leaf-100 bg-white">
@@ -183,6 +202,7 @@ function UsersAdmin() {
           <thead className="bg-leaf-50 text-xs uppercase tracking-widest text-ink-soft">
             <tr>
               <th className="px-6 py-3 text-left">User</th>
+              <th className="px-6 py-3 text-left">User ID</th>
               <th className="px-6 py-3 text-left">Role</th>
               <th className="px-6 py-3 text-left">Status</th>
               <th className="px-6 py-3 text-left">Joined</th>
@@ -190,7 +210,7 @@ function UsersAdmin() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => {
+            {filteredUsers.map((u) => {
               const isSelf = u.id === me?.id;
               return (
                 <tr key={u.id} className="border-t border-leaf-100">
@@ -198,6 +218,7 @@ function UsersAdmin() {
                     <div className="font-medium text-ink">{u.name || "—"}</div>
                     <div className="text-xs text-ink-soft">{u.email}</div>
                   </td>
+                  <td className="px-6 py-3 text-ink">{u.userNumber || "—"}</td>
                   <td className="px-6 py-3">
                     <select
                       value={u.role ?? "user"}
@@ -254,10 +275,10 @@ function UsersAdmin() {
                 </tr>
               );
             })}
-            {!isLoading && users.length === 0 && (
+            {!isLoading && filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-ink-soft">
-                  No users yet
+                <td colSpan={6} className="px-6 py-12 text-center text-ink-soft">
+                  {users.length === 0 ? "No users yet" : "No users match this role"}
                 </td>
               </tr>
             )}

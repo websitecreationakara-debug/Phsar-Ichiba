@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `user_number` text;

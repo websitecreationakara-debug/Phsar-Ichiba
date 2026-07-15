@@ -213,6 +213,10 @@ export const user = sqliteTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
   image: text("image"),
+  // Customer-facing member number (e.g. "0020"), shown in admin as "User ID".
+  // Distinct from `id` (internal UUID) — carried over from the old WooCommerce site
+  // for imported customers; null for accounts created fresh on this platform.
+  userNumber: text("user_number"),
   role: text("role"),
   banned: integer("banned", { mode: "boolean" }),
   banReason: text("ban_reason"),
