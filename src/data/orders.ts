@@ -32,7 +32,7 @@ type CreateOrderInput = {
 };
 
 // Flat delivery fee charged on every order — this business has no free-delivery tier.
-const SHIPPING_FEE = 2.5;
+const SHIPPING_FEE = 1.5;
 
 const parseItems = (row: typeof orders.$inferSelect) => ({
   ...row,

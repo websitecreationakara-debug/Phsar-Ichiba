@@ -16,7 +16,7 @@ import type { Address } from '@/lib/types'
 
 // Flat delivery fee — mirrors SHIPPING_FEE in src/data/orders.ts (server is the
 // source of truth for the actual charge; this is just the checkout preview).
-const SHIPPING_FEE = 2.5
+const SHIPPING_FEE = 1.5
 
 const LEAD_MINUTES = 30
 const localDate = (dayOffset = 0) => {
