@@ -105,7 +105,7 @@ async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
   try {
     const payload: Record<string, unknown> = {
       chat_id: chatId,
-      text: `🌐 Website: ${siteName()}\n🛎️ New order\n\n${text}`,
+      text: `🛎️ New order\nOrder from Website: ${siteName()}\n\n${text}`,
       disable_web_page_preview: true,
     };
     // Forum supergroups route messages into a specific topic by thread id.
