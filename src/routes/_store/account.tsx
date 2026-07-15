@@ -1,8 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import { User, LogOut } from 'lucide-react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { User, LogOut, Mail, Lock, KeyRound, MapPin, Package, FileDown } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { authClient } from '@/lib/auth-client'
+import { useMyOrders } from '@/hooks/use-products'
+import { downloadInvoice } from '@/lib/invoice'
 import { useI18n } from '@/lib/i18n'
+import { formatPrice, cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_store/account')({ component: AccountPage })
 
@@ -48,24 +53,7 @@ function AccountPage() {
   }
 
   if (user) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-16">
-        <div className="rounded-2xl border border-leaf-100 bg-white p-6 text-center">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-leaf-100 text-leaf-700">
-            <User className="h-8 w-8" />
-          </span>
-          <h1 className="mt-4 font-display text-xl font-bold text-ink">{user.name || user.email}</h1>
-          <p className="text-sm text-ink-soft">{user.email}</p>
-          <button
-            type="button"
-            onClick={() => signOut()}
-            className="mt-6 inline-flex items-center gap-2 rounded-full border border-leaf-200 px-5 py-2.5 text-sm font-semibold text-ink hover:bg-leaf-50"
-          >
-            <LogOut className="h-4 w-4" /> {t('account.signOut')}
-          </button>
-        </div>
-      </div>
-    )
+    return <SignedInAccount user={user} onSignOut={signOut} requestPasswordReset={requestPasswordReset} resetPasswordWithOtp={resetPasswordWithOtp} />
   }
 
   const submit = async (e: React.FormEvent) => {
@@ -363,6 +351,362 @@ function AccountPage() {
           {mode === 'signin' ? t('account.signUp') : t('account.signIn')}
         </button>
       </p>
+    </div>
+  )
+}
+
+const STATUS_STYLES: Record<string, string> = {
+  pending: 'bg-carrot-100 text-carrot-700',
+  processing: 'bg-carrot-100 text-carrot-700',
+  shipped: 'bg-leaf-100 text-leaf-800',
+  completed: 'bg-leaf-100 text-leaf-800',
+  cancelled: 'bg-tomato-100 text-tomato-700',
+  awaiting_payment: 'bg-carrot-100 text-carrot-700',
+}
+
+function SignedInAccount({
+  user,
+  onSignOut,
+  requestPasswordReset,
+  resetPasswordWithOtp,
+}: {
+  user: { id: string; name: string | null; email: string }
+  onSignOut: () => Promise<void>
+  requestPasswordReset: (email: string) => Promise<{ error: string | null }>
+  resetPasswordWithOtp: (email: string, otp: string, password: string) => Promise<{ error: string | null }>
+}) {
+  const { t } = useI18n()
+  const { data: orders = [], isLoading: ordersLoading } = useMyOrders(true)
+
+  const [name, setName] = useState(user.name ?? '')
+  const [savingProfile, setSavingProfile] = useState(false)
+
+  // Whether the account has a password (credential provider). Google-only
+  // accounts don't, so they can't "change" a password — they set one via a code.
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [changingPw, setChangingPw] = useState(false)
+  const [codeSent, setCodeSent] = useState(false)
+  const [sendingCode, setSendingCode] = useState(false)
+  const [resetCode, setResetCode] = useState('')
+
+  useEffect(() => {
+    let active = true
+    authClient
+      .listAccounts()
+      .then((res) => {
+        if (active) setHasPassword((res.data ?? []).some((a) => a.providerId === 'credential'))
+      })
+      .catch(() => {
+        if (active) setHasPassword(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const saveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = name.trim()
+    if (!trimmed) {
+      toast.error(t('account.nameRequired'))
+      return
+    }
+    setSavingProfile(true)
+    const { error } = await authClient.updateUser({ name: trimmed })
+    setSavingProfile(false)
+    if (error) toast.error(error.message ?? t('account.profileUpdateFailed'))
+    else toast.success(t('account.profileUpdated'))
+  }
+
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword.length < 8) {
+      toast.error(t('account.passwordTooShort'))
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error(t('account.passwordMismatch'))
+      return
+    }
+    setChangingPw(true)
+    const { error } = await authClient.changePassword({
+      currentPassword,
+      newPassword,
+      revokeOtherSessions: false,
+    })
+    setChangingPw(false)
+    if (error) {
+      toast.error(error.message ?? t('account.passwordUpdateFailed'))
+      return
+    }
+    toast.success(t('account.passwordUpdated'))
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+  }
+
+  const sendResetCode = async () => {
+    setSendingCode(true)
+    const { error } = await requestPasswordReset(user.email)
+    setSendingCode(false)
+    if (error) {
+      toast.error(error)
+      return
+    }
+    setCodeSent(true)
+    toast.success(t('account.codeSent', { email: user.email }))
+  }
+
+  const setPasswordViaCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword.length < 8) {
+      toast.error(t('account.passwordTooShort'))
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error(t('account.passwordMismatch'))
+      return
+    }
+    setChangingPw(true)
+    const { error } = await resetPasswordWithOtp(user.email, resetCode.trim(), newPassword)
+    setChangingPw(false)
+    if (error) {
+      toast.error(error)
+      return
+    }
+    toast.success(t('account.passwordSet'))
+    setHasPassword(true)
+    setCodeSent(false)
+    setResetCode('')
+    setNewPassword('')
+    setConfirmPassword('')
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-10 md:py-12">
+      <h1 className="font-display text-3xl font-bold text-ink md:text-4xl">{t('account.title')}</h1>
+
+      {/* Profile */}
+      <form onSubmit={saveProfile} className="space-y-4 rounded-2xl border border-leaf-100 bg-white p-5 md:p-6">
+        <div className="flex items-center gap-2">
+          <User className="h-5 w-5 text-ink-soft" />
+          <h2 className="font-display text-lg font-semibold text-ink">{t('account.profile')}</h2>
+        </div>
+        <div>
+          <label className={labelCls}>{t('account.displayName')}</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} required className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>{t('account.email')}</label>
+          <div className="flex items-center gap-2 rounded-lg border border-leaf-100 bg-leaf-50 px-3 py-2 text-sm text-ink-soft">
+            <Mail className="h-4 w-4 shrink-0" />
+            <span className="truncate">{user.email}</span>
+          </div>
+          <p className="mt-1.5 text-xs text-ink-soft">{t('account.emailLocked')}</p>
+        </div>
+        <div className="flex justify-end">
+          <button type="submit" disabled={savingProfile} className="rounded-full bg-leaf-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-leaf-700 disabled:opacity-60">
+            {savingProfile ? t('account.saving') : t('account.saveChanges')}
+          </button>
+        </div>
+      </form>
+
+      {/* Password */}
+      <div className="space-y-4 rounded-2xl border border-leaf-100 bg-white p-5 md:p-6">
+        <div className="flex items-center gap-2">
+          <Lock className="h-5 w-5 text-ink-soft" />
+          <h2 className="font-display text-lg font-semibold text-ink">{t('account.password')}</h2>
+        </div>
+
+        {hasPassword === null ? (
+          <p className="text-sm text-ink-soft">{t('shop.loading')}</p>
+        ) : hasPassword ? (
+          <form onSubmit={changePassword} className="space-y-4">
+            <div>
+              <label className={labelCls}>{t('account.currentPassword')}</label>
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                className={inputCls}
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls}>{t('account.newPassword')}</label>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>{t('account.confirmNewPassword')}</label>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className={inputCls}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-ink-soft">{t('account.passwordHint')}</p>
+            <div className="flex justify-end">
+              <button type="submit" disabled={changingPw} className="rounded-full bg-leaf-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-leaf-700 disabled:opacity-60">
+                {changingPw ? t('account.updating') : t('account.changePassword')}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-xl bg-leaf-50 p-4 text-sm">
+              <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-ink-soft" />
+              <p className="text-ink-soft">
+                {t('account.googleOnlyNotice', { email: user.email })}
+              </p>
+            </div>
+            {!codeSent ? (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={sendResetCode}
+                  disabled={sendingCode}
+                  className="rounded-full bg-leaf-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-leaf-700 disabled:opacity-60"
+                >
+                  {sendingCode ? t('account.sending') : t('account.sendCodeToSetPassword')}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={setPasswordViaCode} className="space-y-4">
+                <div>
+                  <label className={labelCls}>{t('account.verificationCode')}</label>
+                  <input
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    value={resetCode}
+                    onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ''))}
+                    className={inputCls}
+                  />
+                  <p className="mt-1.5 text-xs text-ink-soft">{t('account.enterCodeSentTo', { email: user.email })}</p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={labelCls}>{t('account.newPassword')}</label>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>{t('account.confirmNewPassword')}</label>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <button type="button" onClick={sendResetCode} className="text-sm font-semibold text-leaf-700 hover:underline">
+                    {t('account.resendCode')}
+                  </button>
+                  <button type="submit" disabled={changingPw} className="rounded-full bg-leaf-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-leaf-700 disabled:opacity-60">
+                    {changingPw ? t('account.updating') : t('account.setPassword')}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Addresses */}
+      <div className="flex items-center justify-between rounded-2xl border border-leaf-100 bg-white p-5 md:p-6">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-ink-soft" />
+          <h2 className="font-display text-lg font-semibold text-ink">{t('account.addresses')}</h2>
+        </div>
+        <Link to="/addresses" className="rounded-full border border-leaf-200 px-4 py-2 text-sm font-semibold text-ink hover:bg-leaf-50">
+          {t('account.manageAddresses')}
+        </Link>
+      </div>
+
+      {/* Order history */}
+      <div className="space-y-4 rounded-2xl border border-leaf-100 bg-white p-5 md:p-6">
+        <div className="flex items-center gap-2">
+          <Package className="h-5 w-5 text-ink-soft" />
+          <h2 className="font-display text-lg font-semibold text-ink">{t('account.orderHistory')}</h2>
+        </div>
+        {ordersLoading ? (
+          <p className="text-sm text-ink-soft">{t('shop.loading')}</p>
+        ) : orders.length === 0 ? (
+          <p className="text-sm text-ink-soft">{t('account.noOrders')}</p>
+        ) : (
+          <div className="space-y-3">
+            {orders.map((o) => (
+              <div key={o.id} className="rounded-xl border border-leaf-100 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span className="font-mono text-sm text-ink">#{o.id.slice(0, 8).toUpperCase()}</span>
+                    <span className="ml-2 text-xs text-ink-soft">{new Date(o.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <span className={cn('rounded px-2 py-0.5 text-xs font-bold uppercase', STATUS_STYLES[o.status] ?? 'bg-leaf-50 text-ink-soft')}>
+                    {o.status}
+                  </span>
+                </div>
+                <p className="mt-2 truncate text-sm text-ink-soft">
+                  {o.items.map((it) => `${it.title} ×${it.qty}`).join(', ')}
+                </p>
+                <div className="mt-3 flex items-center justify-between border-t border-leaf-100 pt-3">
+                  <span className="font-display text-base font-bold text-ink">{formatPrice(o.total)}</span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await downloadInvoice(o)
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : t('account.invoiceFailed'))
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-leaf-200 px-3 py-1.5 text-sm font-medium text-ink hover:bg-leaf-50"
+                  >
+                    <FileDown className="h-3.5 w-3.5" /> {t('thankyou.invoice')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={() => onSignOut()}
+          className="inline-flex items-center gap-2 rounded-full border border-leaf-200 px-5 py-2.5 text-sm font-semibold text-ink hover:bg-leaf-50"
+        >
+          <LogOut className="h-4 w-4" /> {t('account.signOut')}
+        </button>
+      </div>
     </div>
   )
 }

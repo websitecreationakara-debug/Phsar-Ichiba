@@ -26,6 +26,7 @@ import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
 import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
 import { Route as StoreCartRouteImport } from './routes/_store/cart'
+import { Route as StoreAddressesRouteImport } from './routes/_store/addresses'
 import { Route as StoreAccountRouteImport } from './routes/_store/account'
 import { Route as StoreProductIdRouteImport } from './routes/_store/product.$id'
 
@@ -113,6 +114,11 @@ const StoreCartRoute = StoreCartRouteImport.update({
   path: '/cart',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreAddressesRoute = StoreAddressesRouteImport.update({
+  id: '/addresses',
+  path: '/addresses',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreAccountRoute = StoreAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/account': typeof StoreAccountRoute
+  '/addresses': typeof StoreAddressesRoute
   '/cart': typeof StoreCartRoute
   '/checkout': typeof StoreCheckoutRoute
   '/shop': typeof StoreShopRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/account': typeof StoreAccountRoute
+  '/addresses': typeof StoreAddressesRoute
   '/cart': typeof StoreCartRoute
   '/checkout': typeof StoreCheckoutRoute
   '/shop': typeof StoreShopRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/_store': typeof StoreRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/_store/account': typeof StoreAccountRoute
+  '/_store/addresses': typeof StoreAddressesRoute
   '/_store/cart': typeof StoreCartRoute
   '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/shop': typeof StoreShopRoute
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/account'
+    | '/addresses'
     | '/cart'
     | '/checkout'
     | '/shop'
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/account'
+    | '/addresses'
     | '/cart'
     | '/checkout'
     | '/shop'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/_store'
     | '/admin'
     | '/_store/account'
+    | '/_store/addresses'
     | '/_store/cart'
     | '/_store/checkout'
     | '/_store/shop'
@@ -374,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCartRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/addresses': {
+      id: '/_store/addresses'
+      path: '/addresses'
+      fullPath: '/addresses'
+      preLoaderRoute: typeof StoreAddressesRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/account': {
       id: '/_store/account'
       path: '/account'
@@ -393,6 +412,7 @@ declare module '@tanstack/react-router' {
 
 interface StoreRouteChildren {
   StoreAccountRoute: typeof StoreAccountRoute
+  StoreAddressesRoute: typeof StoreAddressesRoute
   StoreCartRoute: typeof StoreCartRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreShopRoute: typeof StoreShopRoute
@@ -404,6 +424,7 @@ interface StoreRouteChildren {
 
 const StoreRouteChildren: StoreRouteChildren = {
   StoreAccountRoute: StoreAccountRoute,
+  StoreAddressesRoute: StoreAddressesRoute,
   StoreCartRoute: StoreCartRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreShopRoute: StoreShopRoute,
