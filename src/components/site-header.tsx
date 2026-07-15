@@ -79,7 +79,7 @@ export function SiteHeader() {
               {wishCount > 0 && <CountBadge n={wishCount} />}
             </span>
           </Link>
-          <Link to="/account" className="hidden rounded-full p-2 text-ink hover:bg-leaf-100 sm:flex" aria-label={t("nav.account")}>
+          <Link to="/account" className="flex rounded-full p-2 text-ink hover:bg-leaf-100" aria-label={t("nav.account")}>
             <User className="h-5 w-5" />
           </Link>
           <button
