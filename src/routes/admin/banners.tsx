@@ -9,6 +9,7 @@ import { Modal } from "@/components/admin/modal";
 import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { withBase } from "@/lib/base-path";
 import type { HeroSlide, Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/banners")({ component: BannersAdmin });
@@ -200,7 +201,7 @@ function BannersAdmin() {
         {slides.map((s) => (
           <div key={s.id} className="flex items-center gap-4 px-5 py-3">
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-leaf-50">
-              {s.image_url && <img src={s.image_url} alt="" className="h-full w-full object-cover" />}
+              {s.image_url && <img src={withBase(s.image_url)} alt="" className="h-full w-full object-cover" />}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium text-ink">
@@ -374,7 +375,7 @@ function BannersAdmin() {
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-leaf-200 bg-leaf-50">
                 {form.image_url ? (
                   <>
-                    <img src={form.image_url} alt="" className="h-full w-full object-cover" />
+                    <img src={withBase(form.image_url)} alt="" className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, image_url: "" })}
@@ -425,7 +426,7 @@ function BannersAdmin() {
                         }}
                         className="aspect-square overflow-hidden rounded-md border border-leaf-200 hover:ring-2 hover:ring-leaf-500"
                       >
-                        <img src={m.url} alt={m.filename} className="h-full w-full object-cover" />
+                        <img src={withBase(m.url)} alt={m.filename} className="h-full w-full object-cover" />
                       </button>
                     ))}
                   </div>

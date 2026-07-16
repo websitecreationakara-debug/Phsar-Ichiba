@@ -4,6 +4,7 @@ import { createCategory, updateCategory, deleteCategory } from "@/data/categorie
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
 import { slugify, cn } from "@/lib/utils";
+import { withBase } from "@/lib/base-path";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "@/components/admin/modal";
 import { Fragment, useRef, useState } from "react";
@@ -169,7 +170,7 @@ function CategoriesAdmin() {
           aria-label="Set category image"
         >
           {c.image_url ? (
-            <img src={c.image_url} alt="" className="h-full w-full object-cover" />
+            <img src={withBase(c.image_url)} alt="" className="h-full w-full object-cover" />
           ) : (
             <ImageIcon className="h-5 w-5" />
           )}
@@ -338,7 +339,7 @@ function CategoriesAdmin() {
                       }}
                       className="aspect-square overflow-hidden rounded-md border border-leaf-200 hover:ring-2 hover:ring-leaf-500"
                     >
-                      <img src={m.url} alt={m.filename} className="h-full w-full object-cover" />
+                      <img src={withBase(m.url)} alt={m.filename} className="h-full w-full object-cover" />
                     </button>
                   ))}
                 </div>

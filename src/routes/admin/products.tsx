@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { withBase } from "@/lib/base-path";
 import type { Product, Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/products")({
@@ -510,7 +511,7 @@ function ProductsAdmin() {
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-leaf-50">
-                      {p.image_url && <img src={p.image_url} alt="" className="h-full w-full object-cover" />}
+                      {p.image_url && <img src={withBase(p.image_url)} alt="" className="h-full w-full object-cover" />}
                     </div>
                     <div>
                       <div className="font-medium text-ink">{p.title}</div>
@@ -810,7 +811,7 @@ function ProductsAdmin() {
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-leaf-200 bg-leaf-50">
                 {form.image_url ? (
                   <>
-                    <img src={form.image_url} alt="" className="h-full w-full object-cover" />
+                    <img src={withBase(form.image_url)} alt="" className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, image_url: "" })}
@@ -861,7 +862,7 @@ function ProductsAdmin() {
                         }}
                         className="aspect-square overflow-hidden rounded-md border border-leaf-200 hover:ring-2 hover:ring-leaf-500"
                       >
-                        <img src={m.url} alt={m.filename} className="h-full w-full object-cover" />
+                        <img src={withBase(m.url)} alt={m.filename} className="h-full w-full object-cover" />
                       </button>
                     ))}
                   </div>

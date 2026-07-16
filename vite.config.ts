@@ -27,7 +27,12 @@ const clientCloudflareWorkersStub: Plugin = {
   },
 }
 
+// Subpath deployment support (e.g. seatsfarm.com/phsarichiba/) — see
+// src/lib/base-path.ts. Unset VITE_BASE_PATH for a root deployment.
+const basePath = process.env.VITE_BASE_PATH?.replace(/\/+$/, '') || ''
+
 const config = defineConfig({
+  base: basePath ? `${basePath}/` : '/',
   resolve: { tsconfigPaths: true },
   server: { strictPort: true },
   plugins: [

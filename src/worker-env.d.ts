@@ -25,6 +25,10 @@ declare namespace Cloudflare {
 }
 
 interface ImportMetaEnv {
+  // Root-relative path prefix for a subpath deployment (e.g. "/phsarichiba"
+  // for seatsfarm.com/phsarichiba/). Unset = deployed at the domain root.
+  // See src/lib/base-path.ts.
+  readonly VITE_BASE_PATH?: string;
   // Public reCAPTCHA v3 site key, inlined into the client bundle at build time.
   readonly VITE_RECAPTCHA_SITE_KEY?: string;
   // Dev-only auto sign-in credentials (see src/hooks/use-auth.tsx). Set in

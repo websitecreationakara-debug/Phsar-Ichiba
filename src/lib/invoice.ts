@@ -2,6 +2,8 @@
 // heavy and only needed on click, so they're imported dynamically — this keeps
 // them out of the storefront bundle entirely.
 
+import { withBase } from "./base-path";
+
 type InvoiceItem = { id?: string; title: string; qty: number; price: number };
 
 export type InvoiceOrder = {
@@ -28,7 +30,7 @@ const BRAND: [number, number, number] = [59, 125, 32];
 
 async function loadLogo(): Promise<string | null> {
   try {
-    const res = await fetch("/brand/wordmark.png");
+    const res = await fetch(withBase("/brand/wordmark.png"));
     if (!res.ok) return null;
     const blob = await res.blob();
     return await new Promise((resolve) => {
@@ -48,7 +50,7 @@ async function loadLogo(): Promise<string | null> {
 // (not a data URL) since jsPDF's addFileToVFS wants raw base64.
 async function loadJapaneseFontBase64(): Promise<string | null> {
   try {
-    const res = await fetch("/fonts/NotoSansJP-subset.ttf");
+    const res = await fetch(withBase("/fonts/NotoSansJP-subset.ttf"));
     if (!res.ok) return null;
     const bytes = new Uint8Array(await res.arrayBuffer());
     let binary = "";

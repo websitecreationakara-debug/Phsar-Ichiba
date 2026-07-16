@@ -6,6 +6,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { getAuth } from "./lib/auth";
 import { getDb } from "./db";
 import { media } from "./db/schema";
+import { withBase } from "./lib/base-path";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -23,21 +24,26 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 // better-auth owns every /api/auth/* route; short-circuit those to its handler.
+// Prefixed with the configured base path (see lib/base-path.ts) since a
+// subpath deployment (e.g. seatsfarm.com/phsarichiba/) receives requests
+// with that prefix still attached — Cloudflare doesn't strip it.
 const authMiddleware = createMiddleware().server(async ({ next }) => {
   const request = getRequest();
-  if (new URL(request.url).pathname.startsWith("/api/auth")) {
+  if (new URL(request.url).pathname.startsWith(withBase("/api/auth"))) {
     return getAuth().handler(request);
   }
   return next();
 });
 
-// Serve uploaded media stored as BLOBs in D1, same-origin under /media/<key>.
+// Serve uploaded media stored as BLOBs in D1, same-origin under /media/<key>
+// (or {basePath}/media/<key> under a subpath deployment).
 const mediaMiddleware = createMiddleware().server(async ({ next }) => {
   const request = getRequest();
   const { pathname } = new URL(request.url);
-  if (!pathname.startsWith("/media/")) return next();
+  const mediaPrefix = withBase("/media/");
+  if (!pathname.startsWith(mediaPrefix)) return next();
 
-  const key = decodeURIComponent(pathname.slice("/media/".length));
+  const key = decodeURIComponent(pathname.slice(mediaPrefix.length));
   const [row] = await getDb().select().from(media).where(eq(media.key, key));
   if (!row?.data) return new Response("Not found", { status: 404 });
 

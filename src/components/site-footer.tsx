@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { MapPin, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { withBase } from "@/lib/base-path";
 
 export function SiteFooter() {
   const { t } = useI18n();
@@ -10,7 +11,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
         <div>
           <Link to="/" className="inline-flex items-center">
-            <img src="/brand/wordmark.png" alt="Phsar Ichiba" className="h-12 w-auto object-contain" />
+            <img src={withBase('/brand/wordmark.png')} alt="Phsar Ichiba" className="h-12 w-auto object-contain" />
           </Link>
           <p className="mt-3 text-sm text-leaf-800/70">{t("footer.tagline")}</p>
         </div>

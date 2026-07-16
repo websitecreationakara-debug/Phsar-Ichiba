@@ -4,6 +4,7 @@ import { useCart, itemKey, itemUnitPrice } from "@/hooks/use-cart";
 import { useI18n, localizedProductTitle } from "@/lib/i18n";
 import { categoryArt } from "@/lib/category-art";
 import { formatPrice } from "@/lib/utils";
+import { withBase } from "@/lib/base-path";
 
 export function CartDrawer() {
   const { items, count, subtotal, drawerOpen, setDrawerOpen, remove, setQty } = useCart();
@@ -57,7 +58,7 @@ export function CartDrawer() {
                   <li key={key} className="flex gap-3 border-b border-leaf-100 py-4 last:border-0">
                     {item.product.image_url ? (
                       <img
-                        src={item.product.image_url}
+                        src={withBase(item.product.image_url)}
                         alt={title}
                         className="h-16 w-16 shrink-0 rounded-xl object-cover"
                       />

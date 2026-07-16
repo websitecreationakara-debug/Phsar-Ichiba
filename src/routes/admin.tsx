@@ -19,6 +19,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { withBase } from "@/lib/base-path";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -115,9 +116,9 @@ function AdminLayout() {
           className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}
         >
           {collapsed ? (
-            <img src="/brand/icon-mark.png" alt="Phsar Ichiba" className="h-10 w-10 object-contain" />
+            <img src={withBase('/brand/icon-mark.png')} alt="Phsar Ichiba" className="h-10 w-10 object-contain" />
           ) : (
-            <img src="/brand/wordmark.png" alt="Phsar Ichiba" className="h-14 w-auto object-contain" />
+            <img src={withBase('/brand/wordmark.png')} alt="Phsar Ichiba" className="h-14 w-auto object-contain" />
           )}
         </Link>
         <nav className="w-full flex-1 space-y-1">

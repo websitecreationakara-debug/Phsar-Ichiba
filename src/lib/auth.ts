@@ -6,6 +6,7 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
 import { isLegacyHash, verifyLegacyPassword } from "@/lib/legacy-password";
+import { withBase } from "@/lib/base-path";
 
 const env: Record<string, string | undefined> = (() => {
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
@@ -54,6 +55,11 @@ export function getAuth() {
 
   _auth = betterAuth<BetterAuthOptions>({
     baseURL: env.BETTER_AUTH_URL,
+    // Matches the client's `basePath` (auth-client.ts) — must agree so a
+    // subpath deployment's incoming /phsarichiba/api/auth/* requests (still
+    // carrying the prefix; start.ts's authMiddleware forwards them as-is)
+    // route to the right internal action instead of 404ing.
+    basePath: withBase("/api/auth"),
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins,
     database: drizzleAdapter(getDb(), { provider: "sqlite", schema }),

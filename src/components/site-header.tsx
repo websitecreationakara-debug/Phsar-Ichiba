@@ -7,6 +7,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useI18n, LOCALES, localizedCategoryName } from "@/lib/i18n";
 import { categoryArt } from "@/lib/category-art";
 import { cn } from "@/lib/utils";
+import { withBase } from "@/lib/base-path";
 
 export function SiteHeader() {
   const { data: categories } = useCategories();
@@ -43,7 +44,7 @@ export function SiteHeader() {
         </button>
 
         <Link to="/" className="flex shrink-0 items-center gap-2">
-          <img src="/brand/wordmark.png" alt="Phsar Ichiba" className="h-12 w-auto object-contain" />
+          <img src={withBase('/brand/wordmark.png')} alt="Phsar Ichiba" className="h-12 w-auto object-contain" />
         </Link>
 
         <form onSubmit={submitSearch} className="mx-auto hidden max-w-md flex-1 md:block">

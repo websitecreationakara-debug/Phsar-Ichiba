@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { requireManager } from "./_auth";
+import { withBase } from "@/lib/base-path";
 
 export type AnalyticsDay = { date: string; pageViews: number; visits: number };
 export type AnalyticsRow = { label: string; views: number };
@@ -62,8 +63,10 @@ export const getSiteAnalytics = createServerFn({ method: "GET" })
     const startStr = start.toISOString().slice(0, 10);
     const endStr = end.toISOString().slice(0, 10);
     // Exclude admin traffic (the owner's own testing) so the figures reflect
-    // real storefront visitors. `_notlike` with `%` covers every /admin subpath.
-    const f = `siteTag: "${siteTag}", date_geq: "${startStr}", date_leq: "${endStr}", requestPath_notlike: "/admin%"`;
+    // real storefront visitors. `_notlike` with `%` covers every /admin subpath
+    // (prefixed with the configured base path, since recorded requestPaths
+    // include it under a subpath deployment).
+    const f = `siteTag: "${siteTag}", date_geq: "${startStr}", date_leq: "${endStr}", requestPath_notlike: "${withBase("/admin")}%"`;
 
     const query = `query {
       viewer {

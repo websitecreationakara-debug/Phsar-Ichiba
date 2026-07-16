@@ -4,6 +4,7 @@ import { useCart, itemKey, itemUnitPrice } from '@/hooks/use-cart'
 import { useI18n, localizedProductTitle } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice } from '@/lib/utils'
+import { withBase } from '@/lib/base-path'
 
 export const Route = createFileRoute('/_store/cart')({ component: CartPage })
 
@@ -42,7 +43,7 @@ function CartPage() {
               <li key={key} className="flex gap-4 p-4">
                 {item.product.image_url ? (
                   <img
-                    src={item.product.image_url}
+                    src={withBase(item.product.image_url)}
                     alt={title}
                     className="h-20 w-20 shrink-0 rounded-xl object-cover"
                   />

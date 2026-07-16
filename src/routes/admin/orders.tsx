@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { MapPin, Trash2, FileDown } from "lucide-react";
 import { downloadInvoice } from "@/lib/invoice";
 import { Modal } from "@/components/admin/modal";
+import { withBase } from "@/lib/base-path";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin });
 
@@ -127,11 +128,11 @@ function OrdersAdmin() {
                             <button
                               type="button"
                               disabled={!it.image_url}
-                              onClick={() => it.image_url && setPreview({ url: it.image_url, title: label })}
+                              onClick={() => it.image_url && setPreview({ url: withBase(it.image_url), title: label })}
                               className="h-8 w-8 shrink-0 overflow-hidden rounded-md bg-leaf-50 disabled:cursor-default"
                             >
                               {it.image_url && (
-                                <img src={it.image_url} alt="" className="h-full w-full object-cover" />
+                                <img src={withBase(it.image_url)} alt="" className="h-full w-full object-cover" />
                               )}
                             </button>
                             <span>

@@ -13,6 +13,7 @@ import { validatePromoCode } from '@/data/promo-codes'
 import { promoCodeDiscount } from '@/lib/promo-code'
 import { useI18n, localizedProductTitle } from '@/lib/i18n'
 import { formatPrice, cn } from '@/lib/utils'
+import { withBase } from '@/lib/base-path'
 import type { Address } from '@/lib/types'
 
 // Flat delivery fee — mirrors SHIPPING_FEE in src/data/orders.ts (server is the
@@ -551,7 +552,7 @@ function Checkout() {
               <div key={key} className="flex items-center gap-2 text-sm">
                 {item.product.image_url ? (
                   <img
-                    src={item.product.image_url}
+                    src={withBase(item.product.image_url)}
                     alt={title}
                     className="h-10 w-10 shrink-0 rounded-lg object-cover"
                   />

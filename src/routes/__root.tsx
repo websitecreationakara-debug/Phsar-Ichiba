@@ -5,6 +5,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import appCss from '../styles.css?url'
 import { Providers } from '@/components/providers'
 import { CartDrawer } from '@/components/cart-drawer'
+import { withBase } from '@/lib/base-path'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -31,15 +32,15 @@ export const Route = createRootRoute({
       },
       {
         rel: 'icon',
-        href: '/favicon.ico',
+        href: withBase('/favicon.ico'),
       },
       {
         rel: 'apple-touch-icon',
-        href: '/logo192.png',
+        href: withBase('/logo192.png'),
       },
       {
         rel: 'manifest',
-        href: '/manifest.json',
+        href: withBase('/manifest.json'),
       },
     ],
   }),

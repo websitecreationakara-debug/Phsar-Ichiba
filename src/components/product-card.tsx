@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useI18n, localizedProductTitle } from "@/lib/i18n";
 import { productFromPrice } from "@/lib/variants";
+import { withBase } from "@/lib/base-path";
 
 export function ProductCard({
   product,
@@ -44,7 +45,7 @@ export function ProductCard({
       >
         {product.image_url ? (
           <img
-            src={product.image_url}
+            src={withBase(product.image_url)}
             alt={title}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />

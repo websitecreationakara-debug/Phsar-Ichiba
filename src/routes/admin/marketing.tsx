@@ -9,6 +9,7 @@ import { Plus, Pencil, Trash2, X, Search, Tag, Percent, Ticket } from "lucide-re
 import { toast } from "sonner";
 import { KIND_LABEL } from "@/lib/promotions";
 import { cn } from "@/lib/utils";
+import { withBase } from "@/lib/base-path";
 import type { Promotion, PromoCode } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/marketing")({ component: MarketingAdmin });
@@ -318,7 +319,7 @@ function MarketingAdmin() {
                     {assigned.map((pr) => (
                       <span key={pr.id} className="inline-flex items-center gap-2 rounded-full bg-leaf-50 py-1 pl-1 pr-2 text-sm">
                         <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-white">
-                          {pr.image_url && <img src={pr.image_url} alt="" className="h-full w-full object-cover" />}
+                          {pr.image_url && <img src={withBase(pr.image_url)} alt="" className="h-full w-full object-cover" />}
                         </span>
                         <span className="max-w-[160px] truncate text-ink">{pr.title}</span>
                         <button
@@ -561,7 +562,7 @@ function MarketingAdmin() {
                     }
                   />
                   <span className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-leaf-50">
-                    {pr.image_url && <img src={pr.image_url} alt="" className="h-full w-full object-cover" />}
+                    {pr.image_url && <img src={withBase(pr.image_url)} alt="" className="h-full w-full object-cover" />}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm text-ink">{pr.title}</span>
                   {pr.promotion_id && <span className="text-[10px] uppercase tracking-wider text-ink-soft">in another offer</span>}

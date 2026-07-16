@@ -5,6 +5,7 @@ import { getDb } from "@/db";
 import { orders } from "@/db/schema";
 import { createKhqr, paymentMockMode, retrievePaymentResult } from "@/lib/payment";
 import { markOrderPaid } from "./orders";
+import { withBase } from "@/lib/base-path";
 
 // Generate (or re-use) the KHQR for an awaiting-payment order and return what the
 // /pay screen needs. Guest-accessible: orders are addressed by their unguessable
@@ -28,8 +29,8 @@ export const startPayment = createServerFn({ method: "POST" })
       orderId: order.id,
       amount: order.total,
       ref: order.payment_ref,
-      successURL: `${origin}/pay/${order.id}?return=1`,
-      errorURL: `${origin}/pay/${order.id}?failed=1`,
+      successURL: `${origin}${withBase(`/pay/${order.id}`)}?return=1`,
+      errorURL: `${origin}${withBase(`/pay/${order.id}`)}?failed=1`,
     });
 
     await db.update(orders).set({ payment_ref: charge.ref }).where(eq(orders.id, order.id));

@@ -5,6 +5,7 @@ import { listMedia, uploadMedia, deleteMedia, renameMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
 import { Upload, Trash2, Copy, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { withBase } from "@/lib/base-path";
 import type { Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/media")({
@@ -72,7 +73,7 @@ function MediaAdmin() {
   };
 
   const copy = (m: Media) => {
-    navigator.clipboard.writeText(`${window.location.origin}${m.url}`);
+    navigator.clipboard.writeText(`${window.location.origin}${withBase(m.url)}`);
     toast.success("Full URL copied");
   };
 
@@ -103,7 +104,7 @@ function MediaAdmin() {
           {items.map((m) => (
             <div key={m.id} className="group relative overflow-hidden rounded-xl border border-leaf-100 bg-white">
               <div className="aspect-square bg-leaf-50">
-                <img src={m.url} alt={m.filename} className="h-full w-full object-cover" />
+                <img src={withBase(m.url)} alt={m.filename} className="h-full w-full object-cover" />
               </div>
               <div className="p-2">
                 {editing === m.id ? (
