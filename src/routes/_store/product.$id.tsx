@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Star, Heart, Minus, Plus, ChevronRight } from 'lucide-react'
 import { useProduct, useProductVariations, useCategories } from '@/hooks/use-products'
@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useI18n, localizedCategoryName, localizedProductTitle } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice, cn } from '@/lib/utils'
+import { withBase } from '@/lib/base-path'
 import type { ProductVariation } from '@/lib/types'
 
 export const Route = createFileRoute('/_store/product/$id')({ component: ProductDetail })
@@ -27,6 +28,16 @@ function ProductDetail() {
 
   const [qty, setQty] = useState(1)
   const [variation, setVariation] = useState<ProductVariation | null>(null)
+
+  // Variable products have no price/stock of their own — auto-select a
+  // variation (preferring one still in stock) so the page shows a real price
+  // instead of $0.00 by default, rather than forcing a manual pick first.
+  useEffect(() => {
+    if (product?.type === 'variable' && !variation && variations && variations.length > 0) {
+      const inStock = variations.find((v) => v.stock === null || v.stock > 0)
+      setVariation(inStock ?? variations[0])
+    }
+  }, [product?.type, variations, variation])
 
   const { data: rating } = useQuery({
     queryKey: ['product-rating', id],
@@ -94,7 +105,7 @@ function ProductDetail() {
       <div className="grid gap-8 md:grid-cols-2">
         <div className="relative aspect-square overflow-hidden rounded-3xl">
           {product.image_url ? (
-            <img src={product.image_url} alt={title} className="h-full w-full object-cover" />
+            <img src={withBase(product.image_url)} alt={title} className="h-full w-full object-cover" />
           ) : (
             <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${gradient}`}>
               <Icon className="h-24 w-24 text-white/90" strokeWidth={1.25} />
@@ -131,7 +142,13 @@ function ProductDetail() {
           </div>
 
           {product.description && (
-            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink-soft">{product.description}</p>
+            // Descriptions are admin-authored HTML (imported from the old
+            // WooCommerce catalog, some with real formatting) — render as
+            // markup, not escaped text, or tags show up literally on screen.
+            <div
+              className="prose-sm mt-4 max-w-none text-sm leading-relaxed text-ink-soft [&_p]:mb-2 [&_p:last-child]:mb-0"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
           )}
 
           {isVariable && (
