@@ -116,11 +116,18 @@ function OrdersAdmin() {
                 <td className="px-6 py-3 text-ink">{new Date(o.created_at).toLocaleDateString()}</td>
                 <td className="px-6 py-3">
                   {Array.isArray(o.items) && o.items.length > 0 ? (
-                    <ul className="space-y-0.5">
+                    <ul className="space-y-1">
                       {o.items.map((it, i) => (
-                        <li key={it.id ?? i}>
-                          <span className="font-medium text-ink">{it.title_en || it.title}</span>
-                          <span className="text-ink-soft"> × {it.qty}</span>
+                        <li key={it.id ?? i} className="flex items-center gap-2">
+                          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md bg-leaf-50">
+                            {it.image_url && (
+                              <img src={it.image_url} alt="" className="h-full w-full object-cover" />
+                            )}
+                          </div>
+                          <span>
+                            <span className="font-medium text-ink">{it.title_en || it.title}</span>
+                            <span className="text-ink-soft"> × {it.qty}</span>
+                          </span>
                         </li>
                       ))}
                     </ul>
