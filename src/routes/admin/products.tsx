@@ -8,6 +8,7 @@ import {
   reorderProducts,
   getVariations,
   saveVariations,
+  setProductStatus,
 } from "@/data/products";
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
@@ -27,6 +28,8 @@ import {
   ChevronLeft,
   ChevronRight,
   GripVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -312,6 +315,22 @@ function ProductsAdmin() {
     qc.invalidateQueries({ queryKey: ["variations"] });
   };
 
+  const toggleStatus = async (p: Product) => {
+    const next = p.status === "published" ? "draft" : "published";
+    qc.setQueryData(["products", "all"], (rows: Product[] = []) =>
+      rows.map((r) => (r.id === p.id ? { ...r, status: next } : r)),
+    );
+    try {
+      await setProductStatus({ data: { id: p.id, status: next } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update status");
+      qc.invalidateQueries({ queryKey: ["products"] });
+      return;
+    }
+    toast.success(next === "published" ? "Product enabled" : "Product disabled");
+    qc.invalidateQueries({ queryKey: ["products"] });
+  };
+
   const duplicate = async (p: Product) => {
     try {
       const { id } = await createProduct({
@@ -536,6 +555,17 @@ function ProductsAdmin() {
                   <div className="flex justify-end gap-1">
                     <BtnIcon onClick={() => openEdit(p)} aria-label="Edit">
                       <Pencil className="h-4 w-4" />
+                    </BtnIcon>
+                    <BtnIcon
+                      onClick={() => toggleStatus(p)}
+                      aria-label={p.status === "published" ? "Disable product" : "Enable product"}
+                      title={p.status === "published" ? "Published — click to disable" : "Draft — click to enable"}
+                    >
+                      {p.status === "published" ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4 text-ink-soft/50" />
+                      )}
                     </BtnIcon>
                     <BtnIcon onClick={() => duplicate(p)} aria-label="Duplicate">
                       <Copy className="h-4 w-4" />
