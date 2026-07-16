@@ -5,7 +5,7 @@ import { categoryArt } from "@/lib/category-art";
 import { formatPrice, cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localizedProductTitle } from "@/lib/i18n";
 
 export function ProductCard({
   product,
@@ -16,12 +16,13 @@ export function ProductCard({
 }) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { icon: Icon, gradient } = categoryArt(categorySlug);
 
   const outOfStock = product.stock !== null && product.stock <= 0;
   const onSale = product.sale_price != null && product.sale_price < product.price;
   const wished = has(product.id);
+  const title = localizedProductTitle(product, locale);
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-leaf-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -33,7 +34,7 @@ export function ProductCard({
         {product.image_url ? (
           <img
             src={product.image_url}
-            alt={product.title}
+            alt={title}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         ) : (
@@ -71,7 +72,7 @@ export function ProductCard({
 
       <div className="flex flex-1 flex-col gap-1 p-3">
         <Link to="/product/$id" params={{ id: product.id }} className="min-w-0">
-          <h3 className="truncate font-display text-sm font-semibold text-ink">{product.title}</h3>
+          <h3 className="truncate font-display text-sm font-semibold text-ink">{title}</h3>
         </Link>
 
         <div className="flex items-center gap-1 text-xs text-ink-soft">
@@ -96,7 +97,7 @@ export function ProductCard({
             type="button"
             disabled={outOfStock}
             onClick={() => add(product)}
-            aria-label={t("product.addToCartAria", { title: product.title })}
+            aria-label={t("product.addToCartAria", { title })}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-leaf-600 text-white transition hover:bg-leaf-700 disabled:cursor-not-allowed disabled:bg-ink-soft/30"
           >
             <Plus className="h-4 w-4" />

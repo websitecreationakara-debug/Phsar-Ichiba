@@ -69,7 +69,9 @@ function Shop() {
     if (activeCategory) rows = rows.filter((p) => p.category_id === activeCategory.id)
     if (query) {
       const needle = query.toLowerCase()
-      rows = rows.filter((p) => p.title.toLowerCase().includes(needle))
+      rows = rows.filter(
+        (p) => p.title.toLowerCase().includes(needle) || (p.title_en ?? '').toLowerCase().includes(needle),
+      )
     }
     if (onSale) rows = rows.filter(isOnSale)
     rows = rows.filter((p) => {

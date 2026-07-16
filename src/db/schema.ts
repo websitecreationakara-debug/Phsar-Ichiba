@@ -64,6 +64,9 @@ export const promotions = sqliteTable("promotions", {
 export const products = sqliteTable("products", {
   id: text("id").primaryKey().$defaultFn(uuid),
   title: text("title").notNull(),
+  // English name, shown to Khmer-reading staff (Telegram/email order alerts,
+  // admin Orders page) — the storefront itself stays on `title` (Japanese).
+  title_en: text("title_en"),
   description: text("description"),
   price: real("price").notNull().default(0),
   sale_price: real("sale_price"),

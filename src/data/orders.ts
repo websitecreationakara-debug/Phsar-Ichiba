@@ -13,7 +13,14 @@ import {
   requireUser,
 } from "./_auth";
 
-type OrderItem = { id: string; title: string; qty: number; price: number };
+type OrderItem = {
+  id: string;
+  title: string;
+  qty: number;
+  price: number;
+  title_en?: string | null;
+  image_url?: string | null;
+};
 
 // Order line ids are either a simple product id or a product_variation id.
 type CreateOrderInput = {
@@ -115,6 +122,8 @@ export const createOrder = createServerFn({ method: "POST" })
           sale_price: products.sale_price,
           stock: products.stock,
           promotion_id: products.promotion_id,
+          title_en: products.title_en,
+          image_url: products.image_url,
         })
         .from(products)
         .where(inArray(products.id, ids)),
@@ -135,11 +144,17 @@ export const createOrder = createServerFn({ method: "POST" })
     const parentIds = [...new Set(varRows.map((v) => v.product_id))];
     const parents = parentIds.length
       ? await db
-          .select({ id: products.id, promotion_id: products.promotion_id })
+          .select({
+            id: products.id,
+            promotion_id: products.promotion_id,
+            title_en: products.title_en,
+            image_url: products.image_url,
+          })
           .from(products)
           .where(inArray(products.id, parentIds))
       : [];
     const promoIdByParent = new Map(parents.map((p) => [p.id, p.promotion_id]));
+    const parentById = new Map(parents.map((p) => [p.id, p]));
     const promoIds = [
       ...new Set(
         [...prodRows.map((p) => p.promotion_id), ...parents.map((p) => p.promotion_id)].filter(
@@ -168,12 +183,35 @@ export const createOrder = createServerFn({ method: "POST" })
       priceById.set(v.id, applyPromo(v.sale_price ?? v.price, promo, now));
     }
 
+    // Staff-facing English name + thumbnail, snapshotted at order time so
+    // Telegram/email alerts and order history don't depend on the product
+    // still existing (or being unchanged) later. Variations inherit both from
+    // their parent product, which has no title/image of its own.
+    const titleEnById = new Map<string, string | null>();
+    const imageUrlById = new Map<string, string | null>();
+    for (const p of prodRows) {
+      titleEnById.set(p.id, p.title_en);
+      imageUrlById.set(p.id, p.image_url);
+    }
+    for (const v of varRows) {
+      const parent = parentById.get(v.product_id);
+      titleEnById.set(v.id, parent?.title_en ?? null);
+      imageUrlById.set(v.id, parent?.image_url ?? null);
+    }
+
     const items: OrderItem[] = rawItems.map((i) => {
       const price = priceById.get(i.id);
       if (price == null) throw new Error("One or more items are no longer available");
       const qty = Math.floor(Number(i.qty));
       if (!Number.isFinite(qty) || qty < 1 || qty > 999) throw new Error("Invalid quantity");
-      return { id: i.id, title: String(i.title ?? "").slice(0, 200), qty, price };
+      return {
+        id: i.id,
+        title: String(i.title ?? "").slice(0, 200),
+        qty,
+        price,
+        title_en: titleEnById.get(i.id) ?? null,
+        image_url: imageUrlById.get(i.id) ?? null,
+      };
     });
 
     // Inventory guard. null stock = untracked (always available); a number is a

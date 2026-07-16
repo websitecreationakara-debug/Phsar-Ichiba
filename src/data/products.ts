@@ -8,6 +8,7 @@ import { requireCatalogManager } from "./_auth";
 
 type ProductInput = {
   title: string;
+  title_en?: string | null;
   description: string | null;
   price: number;
   sale_price: number | null;

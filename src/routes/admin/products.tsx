@@ -39,6 +39,7 @@ export const Route = createFileRoute("/admin/products")({
 const empty = {
   id: "",
   title: "",
+  title_en: "",
   description: "",
   price: "0",
   sale_price: "",
@@ -136,7 +137,11 @@ function ProductsAdmin() {
   const filtersActive =
     query.trim() !== "" || catFilter !== "all" || statusFilter !== "all" || typeFilter !== "all";
   const filtered = products.filter((p) => {
-    if (query && !p.title.toLowerCase().includes(query.toLowerCase())) return false;
+    if (query) {
+      const q = query.toLowerCase();
+      const matches = p.title.toLowerCase().includes(q) || (p.title_en ?? "").toLowerCase().includes(q);
+      if (!matches) return false;
+    }
     if (catFilter !== "all" && p.category_id !== catFilter) return false;
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (typeFilter !== "all" && p.type !== typeFilter) return false;
@@ -212,6 +217,7 @@ function ProductsAdmin() {
     setForm({
       id: p.id,
       title: p.title,
+      title_en: p.title_en ?? "",
       description: p.description ?? "",
       price: String(p.price),
       sale_price: p.sale_price != null ? String(p.sale_price) : "",
@@ -262,6 +268,7 @@ function ProductsAdmin() {
     const variable = form.type === "variable";
     const payload = {
       title: form.title,
+      title_en: form.title_en.trim() || null,
       description: form.description || null,
       price: variable ? 0 : Number(form.price),
       sale_price: variable || !form.sale_price ? null : Number(form.sale_price),
@@ -309,6 +316,7 @@ function ProductsAdmin() {
       const { id } = await createProduct({
         data: {
           title: `${p.title} (Copy)`,
+          title_en: p.title_en,
           description: p.description,
           price: p.price,
           sale_price: p.sale_price,
@@ -504,7 +512,10 @@ function ProductsAdmin() {
                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-leaf-50">
                       {p.image_url && <img src={p.image_url} alt="" className="h-full w-full object-cover" />}
                     </div>
-                    <span className="font-medium text-ink">{p.title}</span>
+                    <div>
+                      <div className="font-medium text-ink">{p.title}</div>
+                      {p.title_en && <div className="text-xs text-ink-soft">{p.title_en}</div>}
+                    </div>
                     {p.type === "variable" && (
                       <span className="rounded border border-leaf-400 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-leaf-700">
                         Variable
@@ -587,6 +598,14 @@ function ProductsAdmin() {
         <form onSubmit={save} className="space-y-4">
           <Field label="Title">
             <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputCls} />
+          </Field>
+          <Field label="English title (for staff — order alerts, admin lists)">
+            <input
+              value={form.title_en}
+              onChange={(e) => setForm({ ...form, title_en: e.target.value })}
+              placeholder="Optional"
+              className={inputCls}
+            />
           </Field>
           <Field label="Description">
             <textarea

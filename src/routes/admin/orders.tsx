@@ -119,7 +119,7 @@ function OrdersAdmin() {
                     <ul className="space-y-0.5">
                       {o.items.map((it, i) => (
                         <li key={it.id ?? i}>
-                          <span className="font-medium text-ink">{it.title}</span>
+                          <span className="font-medium text-ink">{it.title_en || it.title}</span>
                           <span className="text-ink-soft"> × {it.qty}</span>
                         </li>
                       ))}

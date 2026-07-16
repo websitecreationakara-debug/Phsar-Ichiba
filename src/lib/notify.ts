@@ -3,7 +3,12 @@
 // emails. Never throws — a failed notification must not fail the order itself.
 import { Resend } from "resend";
 
-type OrderItem = { id: string; title: string; qty: number; price: number };
+type OrderItem = { id: string; title: string; qty: number; price: number; title_en?: string | null };
+
+// Staff-facing alerts (Telegram, admin email) show the English name when one is
+// set; customer-facing emails always show the storefront title.
+const itemLabel = (i: OrderItem, forStaff: boolean): string =>
+  (forStaff && i.title_en) || i.title;
 
 export type OrderNotification = {
   id: string;
@@ -59,11 +64,11 @@ const mapsUrl = (o: OrderNotification): string | null =>
     ? `https://www.google.com/maps?q=${o.location_lat},${o.location_lng}`
     : null;
 
-const itemRowsHtml = (items: OrderItem[]): string =>
+const itemRowsHtml = (items: OrderItem[], forStaff: boolean): string =>
   items
     .map(
       (i) =>
-        `<tr><td style="padding:4px 10px">${i.qty}×</td><td style="padding:4px 10px">${escapeHtml(i.title)}</td><td style="padding:4px 10px;text-align:right;white-space:nowrap">$${(i.price * i.qty).toFixed(2)}</td></tr>`,
+        `<tr><td style="padding:4px 10px">${i.qty}×</td><td style="padding:4px 10px">${escapeHtml(itemLabel(i, forStaff))}</td><td style="padding:4px 10px;text-align:right;white-space:nowrap">$${(i.price * i.qty).toFixed(2)}</td></tr>`,
     )
     .join("");
 
@@ -82,7 +87,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
     ...(schedule ? [`🗓️ ${isPickup ? "Pickup" : "Scheduled"}: ${schedule}`] : []),
     ...(!isPickup && mapLink ? [`📍 Map: ${mapLink}`] : []),
     "Items:",
-    ...order.items.map((i) => `  ${i.qty}× ${i.title} — $${(i.price * i.qty).toFixed(2)}`),
+    ...order.items.map((i) => `  ${i.qty}× ${itemLabel(i, true)} — $${(i.price * i.qty).toFixed(2)}`),
     `Total: $${order.total.toFixed(2)}`,
   ].join("\n");
 
@@ -136,7 +141,7 @@ async function sendEmail(
     const resend = new Resend(env.RESEND_API_KEY);
     const from = env.RESEND_FROM ?? "Phsar Ichiba <onboarding@resend.dev>";
     const isPickup = order.fulfillment_method === "pickup";
-    const rows = itemRowsHtml(order.items);
+    const rows = itemRowsHtml(order.items, true);
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
         <p style="margin:0 0 8px;font-size:13px;color:#888">🌐 ${escapeHtml(siteName())}</p>
@@ -193,7 +198,7 @@ export async function notifyOrderShipped(order: ShippedNotification): Promise<vo
             ? `<p style="margin:0 0 20px"><a href="${escapeHtml(track)}" style="display:inline-block;background:#00b14f;color:#fff;text-decoration:none;padding:12px 22px;border-radius:9999px;font-weight:600">Track your delivery</a></p>`
             : ""
         }
-        <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items)}</table>
+        <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items, false)}</table>
         <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
         <p style="margin:24px 0 0;font-size:13px;color:#888">${escapeHtml(siteName())}</p>
       </div>`;
@@ -226,7 +231,7 @@ async function sendCustomerEmail(
         <p style="margin:0 0 2px"><strong>Order #:</strong> ${short}</p>
         ${order.fulfillment_method === "pickup" ? `<p style="margin:0 0 2px"><strong>🏪 Store pickup</strong></p>` : shipTo ? `<p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo)}</p>` : ""}
         ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 16px"><strong>🗓️ ${order.fulfillment_method === "pickup" ? "Pickup time" : "Scheduled for"}:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
-        <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items)}</table>
+        <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items, false)}</table>
         <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
         <p style="margin:24px 0 0;font-size:13px;color:#888">${escapeHtml(siteName())}</p>
       </div>`;

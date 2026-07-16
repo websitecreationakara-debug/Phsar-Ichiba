@@ -7,7 +7,7 @@ import { getProductRating, rateProduct } from '@/data/ratings'
 import { useCart } from '@/hooks/use-cart'
 import { useWishlist } from '@/hooks/use-wishlist'
 import { useAuth } from '@/hooks/use-auth'
-import { useI18n, localizedCategoryName } from '@/lib/i18n'
+import { useI18n, localizedCategoryName, localizedProductTitle } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice, cn } from '@/lib/utils'
 import type { ProductVariation } from '@/lib/types'
@@ -56,6 +56,7 @@ function ProductDetail() {
 
   const category = categories?.find((c) => c.id === product.category_id)
   const { icon: Icon, gradient } = categoryArt(category?.slug)
+  const title = localizedProductTitle(product, locale)
 
   const isVariable = product.type === 'variable' && (variations?.length ?? 0) > 0
   const effectivePrice = variation
@@ -87,13 +88,13 @@ function ProductDetail() {
             <ChevronRight className="h-3 w-3" />
           </>
         )}
-        <span className="text-ink">{product.title}</span>
+        <span className="text-ink">{title}</span>
       </nav>
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="relative aspect-square overflow-hidden rounded-3xl">
           {product.image_url ? (
-            <img src={product.image_url} alt={product.title} className="h-full w-full object-cover" />
+            <img src={product.image_url} alt={title} className="h-full w-full object-cover" />
           ) : (
             <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${gradient}`}>
               <Icon className="h-24 w-24 text-white/90" strokeWidth={1.25} />
@@ -107,7 +108,7 @@ function ProductDetail() {
         </div>
 
         <div>
-          <h1 className="font-display text-3xl font-bold text-ink">{product.title}</h1>
+          <h1 className="font-display text-3xl font-bold text-ink">{title}</h1>
 
           <div className="mt-2 flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1">

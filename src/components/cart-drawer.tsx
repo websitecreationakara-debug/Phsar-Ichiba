@@ -1,13 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { X, Minus, Plus, ShoppingBasket, Trash2 } from "lucide-react";
 import { useCart, itemKey, itemUnitPrice } from "@/hooks/use-cart";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localizedProductTitle } from "@/lib/i18n";
 import { categoryArt } from "@/lib/category-art";
 import { formatPrice } from "@/lib/utils";
 
 export function CartDrawer() {
   const { items, count, subtotal, drawerOpen, setDrawerOpen, remove, setQty } = useCart();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   if (!drawerOpen) return null;
 
@@ -52,12 +52,13 @@ export function CartDrawer() {
                 const key = itemKey(item);
                 const { icon: Icon, gradient } = categoryArt(undefined);
                 const unit = itemUnitPrice(item);
+                const title = localizedProductTitle(item.product, locale);
                 return (
                   <li key={key} className="flex gap-3 border-b border-leaf-100 py-4 last:border-0">
                     {item.product.image_url ? (
                       <img
                         src={item.product.image_url}
-                        alt={item.product.title}
+                        alt={title}
                         className="h-16 w-16 shrink-0 rounded-xl object-cover"
                       />
                     ) : (
@@ -71,7 +72,7 @@ export function CartDrawer() {
                     <div className="flex min-w-0 flex-1 flex-col">
                       <div className="flex items-start justify-between gap-2">
                         <p className="truncate text-sm font-semibold text-ink">
-                          {item.product.title}
+                          {title}
                         </p>
                         <button
                           type="button"

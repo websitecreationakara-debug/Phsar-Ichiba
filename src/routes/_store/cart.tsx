@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Minus, Plus, Trash2, ShoppingBasket } from 'lucide-react'
 import { useCart, itemKey, itemUnitPrice } from '@/hooks/use-cart'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, localizedProductTitle } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice } from '@/lib/utils'
 
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/_store/cart')({ component: CartPage })
 
 function CartPage() {
   const { items, subtotal, remove, setQty } = useCart()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   if (items.length === 0) {
     return (
@@ -37,12 +37,13 @@ function CartPage() {
             const key = itemKey(item)
             const { icon: Icon, gradient } = categoryArt(undefined)
             const unit = itemUnitPrice(item)
+            const title = localizedProductTitle(item.product, locale)
             return (
               <li key={key} className="flex gap-4 p-4">
                 {item.product.image_url ? (
                   <img
                     src={item.product.image_url}
-                    alt={item.product.title}
+                    alt={title}
                     className="h-20 w-20 shrink-0 rounded-xl object-cover"
                   />
                 ) : (
@@ -61,7 +62,7 @@ function CartPage() {
                         params={{ id: item.product.id }}
                         className="truncate font-display text-sm font-semibold text-ink hover:underline"
                       >
-                        {item.product.title}
+                        {title}
                       </Link>
                       {item.variation && <p className="text-xs text-ink-soft">{item.variation.weight}</p>}
                       <p className="text-xs text-ink-soft">{t('cart.priceEach', { price: formatPrice(unit) })}</p>

@@ -11,7 +11,7 @@ import { createOrder } from '@/data/orders'
 import { saveAddress } from '@/data/addresses'
 import { validatePromoCode } from '@/data/promo-codes'
 import { promoCodeDiscount } from '@/lib/promo-code'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, localizedProductTitle } from '@/lib/i18n'
 import { formatPrice, cn } from '@/lib/utils'
 import type { Address } from '@/lib/types'
 
@@ -68,7 +68,7 @@ function Checkout() {
   const { data: addresses = [] } = useMyAddresses(!!user)
   const qc = useQueryClient()
   const navigate = useNavigate()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const [submitting, setSubmitting] = useState(false)
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
@@ -216,7 +216,9 @@ function Checkout() {
     setSubmitting(true)
     const orderItems = items.map((i) => ({
       id: i.variation?.id ?? i.product.id,
-      title: i.variation ? `${i.product.title} (${i.variation.weight})` : i.product.title,
+      title: i.variation
+        ? `${localizedProductTitle(i.product, locale)} (${i.variation.weight})`
+        : localizedProductTitle(i.product, locale),
       qty: i.qty,
     }))
     const customerName = nameRef.current?.value.trim() || (user?.name ?? '')
@@ -543,12 +545,13 @@ function Checkout() {
           {items.map((item) => {
             const key = itemKey(item)
             const unit = itemUnitPrice(item)
+            const title = localizedProductTitle(item.product, locale)
             return (
               <div key={key} className="flex items-center gap-2 text-sm">
                 {item.product.image_url ? (
                   <img
                     src={item.product.image_url}
-                    alt={item.product.title}
+                    alt={title}
                     className="h-10 w-10 shrink-0 rounded-lg object-cover"
                   />
                 ) : (
@@ -558,7 +561,7 @@ function Checkout() {
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-ink">
-                    {item.product.title}
+                    {title}
                     {item.variation ? ` (${item.variation.weight})` : ''}
                   </p>
                   <p className="mt-0.5 text-xs text-ink-soft">{t('cart.priceEach', { price: formatPrice(unit) })}</p>

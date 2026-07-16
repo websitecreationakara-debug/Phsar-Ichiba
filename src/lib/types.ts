@@ -1,6 +1,9 @@
 export type Product = {
   id: string;
   title: string;
+  // English name for admin/staff use (Telegram/email order alerts, admin Orders
+  // page) — the storefront itself stays on `title`.
+  title_en: string | null;
   description: string | null;
   price: number;
   sale_price: number | null;

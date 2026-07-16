@@ -27,6 +27,16 @@ export function localizedHeroField(ja: string | null, en: string | null | undefi
   return locale === "en" ? en || ja : ja;
 }
 
+// Same pattern again for product titles — `title_en` was originally added for
+// staff-facing order alerts only, but it doubles as the storefront's English
+// translation, falling back to the Japanese title when unset.
+export function localizedProductTitle(
+  p: { title: string; title_en?: string | null },
+  locale: Locale,
+): string {
+  return locale === "en" ? p.title_en || p.title : p.title;
+}
+
 const ja = {
   "root.title": "プサール・イチバ — フレッシュマーケット",
   "root.description": "新鮮な野菜・果物・日用食品を毎日収穫し、迅速にお届けします。",
