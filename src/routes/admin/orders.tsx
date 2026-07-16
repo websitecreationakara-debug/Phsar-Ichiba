@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listOrders, updateOrderStatus, updateOrderTracking, deleteOrder } from "@/data/orders";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { MapPin, Trash2, FileDown } from "lucide-react";
 import { downloadInvoice } from "@/lib/invoice";
+import { Modal } from "@/components/admin/modal";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin });
 
@@ -13,6 +15,7 @@ const inputCls =
 
 function OrdersAdmin() {
   const qc = useQueryClient();
+  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
   const { data: orders = [] } = useQuery({
     queryKey: ["orders-admin"],
     queryFn: () => listOrders(),
@@ -117,19 +120,27 @@ function OrdersAdmin() {
                 <td className="px-6 py-3">
                   {Array.isArray(o.items) && o.items.length > 0 ? (
                     <ul className="space-y-1">
-                      {o.items.map((it, i) => (
-                        <li key={it.id ?? i} className="flex items-center gap-2">
-                          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md bg-leaf-50">
-                            {it.image_url && (
-                              <img src={it.image_url} alt="" className="h-full w-full object-cover" />
-                            )}
-                          </div>
-                          <span>
-                            <span className="font-medium text-ink">{it.title_en || it.title}</span>
-                            <span className="text-ink-soft"> × {it.qty}</span>
-                          </span>
-                        </li>
-                      ))}
+                      {o.items.map((it, i) => {
+                        const label = it.title_en || it.title;
+                        return (
+                          <li key={it.id ?? i} className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={!it.image_url}
+                              onClick={() => it.image_url && setPreview({ url: it.image_url, title: label })}
+                              className="h-8 w-8 shrink-0 overflow-hidden rounded-md bg-leaf-50 disabled:cursor-default"
+                            >
+                              {it.image_url && (
+                                <img src={it.image_url} alt="" className="h-full w-full object-cover" />
+                              )}
+                            </button>
+                            <span>
+                              <span className="font-medium text-ink">{label}</span>
+                              <span className="text-ink-soft"> × {it.qty}</span>
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   ) : (
                     <span className="text-ink-soft">—</span>
@@ -195,6 +206,10 @@ function OrdersAdmin() {
           </tbody>
         </table>
       </div>
+
+      <Modal open={!!preview} onClose={() => setPreview(null)} title={preview?.title ?? ""}>
+        {preview && <img src={preview.url} alt="" className="w-full rounded-xl object-contain" />}
+      </Modal>
     </div>
   );
 }
