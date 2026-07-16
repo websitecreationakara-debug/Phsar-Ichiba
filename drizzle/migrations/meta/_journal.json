@@ -57,6 +57,13 @@
       "when": 1784113629946,
       "tag": "0007_calm_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1784177519473,
+      "tag": "0008_add_user_phone",
+      "breakpoints": true
     }
   ]
 }

@@ -60,6 +60,7 @@ export function getAuth() {
     user: {
       additionalFields: {
         userNumber: { type: "string", required: false, input: false },
+        phone: { type: "string", required: false, input: false },
       },
     },
     emailAndPassword: {

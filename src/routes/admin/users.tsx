@@ -61,6 +61,7 @@ type AdminUser = {
   name: string;
   email: string;
   userNumber?: string | null;
+  phone?: string | null;
   role?: string | null;
   banned?: boolean | null;
   emailVerified?: boolean | null;
@@ -102,7 +103,8 @@ function UsersAdmin() {
         !query ||
         u.name?.toLowerCase().includes(query) ||
         u.email.toLowerCase().includes(query) ||
-        u.userNumber?.toLowerCase().includes(query),
+        u.userNumber?.toLowerCase().includes(query) ||
+        u.phone?.toLowerCase().includes(query),
     );
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -238,6 +240,7 @@ function UsersAdmin() {
             <tr>
               <th className="px-6 py-3 text-left">User</th>
               <th className="px-6 py-3 text-left">User ID</th>
+              <th className="px-6 py-3 text-left">Phone</th>
               <th className="px-6 py-3 text-left">Role</th>
               <th className="px-6 py-3 text-left">Status</th>
               <th className="px-6 py-3 text-left">Joined</th>
@@ -254,6 +257,7 @@ function UsersAdmin() {
                     <div className="text-xs text-ink-soft">{u.email}</div>
                   </td>
                   <td className="px-6 py-3 text-ink">{u.userNumber || "—"}</td>
+                  <td className="px-6 py-3 text-ink">{u.phone || "—"}</td>
                   <td className="px-6 py-3">
                     <select
                       value={u.role ?? "user"}
@@ -313,7 +317,7 @@ function UsersAdmin() {
             })}
             {!isLoading && filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-ink-soft">
+                <td colSpan={7} className="px-6 py-12 text-center text-ink-soft">
                   {users.length === 0 ? "No users yet" : "No users match your search"}
                 </td>
               </tr>

@@ -233,6 +233,10 @@ export const user = sqliteTable("user", {
   // Distinct from `id` (internal UUID) — carried over from the old WooCommerce site
   // for imported customers; null for accounts created fresh on this platform.
   userNumber: text("user_number"),
+  // Contact phone on the account itself (distinct from the per-order
+  // customer_phone and per-address phone) — carried over from the old
+  // WooCommerce site's billing_phone for imported customers; null otherwise.
+  phone: text("phone"),
   role: text("role"),
   banned: integer("banned", { mode: "boolean" }),
   banReason: text("ban_reason"),
