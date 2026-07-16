@@ -64,6 +64,13 @@
       "when": 1784177519473,
       "tag": "0008_add_user_phone",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1784177985653,
+      "tag": "0009_add_product_title_en",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `products` ADD `title_en` text;
