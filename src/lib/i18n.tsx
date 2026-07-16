@@ -94,6 +94,7 @@ const ja = {
   "product.signInToRate": "ログインして評価する",
   "product.signIn": "ログイン",
   "product.addToCartAria": "{title}をカートに追加",
+  "product.fromPrice": "{price}〜",
 
   "cart.count": "カート ({n})",
   "cart.empty": "カートは空です",
@@ -344,6 +345,7 @@ const en: Dict = {
   "product.signInToRate": "Sign in to rate",
   "product.signIn": "Sign in",
   "product.addToCartAria": "Add {title} to cart",
+  "product.fromPrice": "From {price}",
 
   "cart.count": "Your basket ({n})",
   "cart.empty": "Your basket is empty",

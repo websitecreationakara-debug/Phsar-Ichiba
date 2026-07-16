@@ -289,6 +289,7 @@ function Shop() {
                   key={p.id}
                   product={p}
                   categorySlug={categoryById.get(p.category_id ?? '')?.slug}
+                  variations={variationsByProduct.get(p.id)}
                 />
               ))}
             </div>

@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useHeroSlides, useCategories, useProducts } from '@/hooks/use-products'
+import { useHeroSlides, useCategories, useProducts, useAllVariations } from '@/hooks/use-products'
 import { useI18n, localizedCategoryName } from '@/lib/i18n'
 import { HeroCarousel } from '@/components/hero-carousel'
 import { ProductCard } from '@/components/product-card'
 import { categoryArt } from '@/lib/category-art'
+import { groupVariations } from '@/lib/variants'
 
 export const Route = createFileRoute('/_store/')({ component: Home })
 
@@ -11,9 +12,11 @@ function Home() {
   const { data: slides } = useHeroSlides()
   const { data: categories } = useCategories()
   const { data: products } = useProducts()
+  const { data: variations } = useAllVariations()
   const { t, locale } = useI18n()
 
   const categoryById = new Map((categories ?? []).map((c) => [c.id, c]))
+  const variationsByProduct = groupVariations(variations ?? [])
   const onSale = (products ?? []).filter((p) => p.sale_price != null && p.sale_price < p.price)
   const featured = (products ?? []).slice(0, 8)
 
@@ -57,7 +60,12 @@ function Home() {
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
             {onSale.map((p) => (
-              <ProductCard key={p.id} product={p} categorySlug={categoryById.get(p.category_id ?? '')?.slug} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                categorySlug={categoryById.get(p.category_id ?? '')?.slug}
+                variations={variationsByProduct.get(p.id)}
+              />
             ))}
           </div>
         </section>
@@ -72,7 +80,12 @@ function Home() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {featured.map((p) => (
-            <ProductCard key={p.id} product={p} categorySlug={categoryById.get(p.category_id ?? '')?.slug} />
+            <ProductCard
+              key={p.id}
+              product={p}
+              categorySlug={categoryById.get(p.category_id ?? '')?.slug}
+              variations={variationsByProduct.get(p.id)}
+            />
           ))}
         </div>
       </section>

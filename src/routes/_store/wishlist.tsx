@@ -2,8 +2,9 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { Heart } from 'lucide-react'
 import { ProductCard } from '@/components/product-card'
 import { useWishlist } from '@/hooks/use-wishlist'
-import { useProducts, useCategories } from '@/hooks/use-products'
+import { useProducts, useCategories, useAllVariations } from '@/hooks/use-products'
 import { useI18n } from '@/lib/i18n'
+import { groupVariations } from '@/lib/variants'
 
 export const Route = createFileRoute('/_store/wishlist')({ component: Wishlist })
 
@@ -12,7 +13,9 @@ function Wishlist() {
   const { ids } = useWishlist()
   const { data: products = [] } = useProducts()
   const { data: categories = [] } = useCategories()
+  const { data: variations } = useAllVariations()
   const categoryById = new Map(categories.map((c) => [c.id, c]))
+  const variationsByProduct = groupVariations(variations ?? [])
 
   // Preserve the order items were saved in.
   const saved = ids
@@ -40,7 +43,12 @@ function Wishlist() {
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {saved.map((p) => (
-          <ProductCard key={p.id} product={p} categorySlug={categoryById.get(p.category_id ?? '')?.slug} />
+          <ProductCard
+            key={p.id}
+            product={p}
+            categorySlug={categoryById.get(p.category_id ?? '')?.slug}
+            variations={variationsByProduct.get(p.id)}
+          />
         ))}
       </div>
     </div>
