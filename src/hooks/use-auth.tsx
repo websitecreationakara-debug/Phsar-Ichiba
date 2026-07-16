@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { withCaptcha } from "@/lib/recaptcha";
 
@@ -7,6 +7,7 @@ type AuthUser = {
   email: string;
   name: string | null;
   role: string | null;
+  userNumber: string | null;
 } | null;
 
 type AuthCtx = {
@@ -39,11 +40,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, isPending } = authClient.useSession();
 
   const u = data?.user as
-    | { id: string; email: string; name?: string | null; role?: string | null }
+    | { id: string; email: string; name?: string | null; role?: string | null; userNumber?: string | null }
     | undefined;
   const user: AuthUser = u
-    ? { id: u.id, email: u.email, name: u.name ?? null, role: u.role ?? null }
+    ? { id: u.id, email: u.email, name: u.name ?? null, role: u.role ?? null, userNumber: u.userNumber ?? null }
     : null;
+
+  // Dev-only convenience: auto sign in with credentials from .env.local so
+  // local development doesn't require logging in by hand every time.
+  // `import.meta.env.DEV` is statically false in production builds, so this
+  // whole branch is dead-code-eliminated from anything that ships.
+  const triedDevAutoSignIn = useRef(false);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const email = import.meta.env.VITE_DEV_ADMIN_EMAIL;
+    const password = import.meta.env.VITE_DEV_ADMIN_PASSWORD;
+    if (!email || !password) return;
+    if (isPending || user || triedDevAutoSignIn.current) return;
+    triedDevAutoSignIn.current = true;
+    authClient.signIn.email({ email, password });
+  }, [isPending, user]);
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
     const { error } = await authClient.signIn.email({

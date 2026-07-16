@@ -321,7 +321,7 @@ function Checkout() {
                   type="button"
                   onClick={() => setFulfillmentMethod(opt.key)}
                   className={cn(
-                    'flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition',
+                    'flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition',
                     fulfillmentMethod === opt.key
                       ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
                       : 'border-leaf-200 text-ink-soft hover:bg-white',
@@ -399,6 +399,7 @@ function Checkout() {
                 required
                 inputMode="numeric"
                 pattern="[0-9]*"
+                defaultValue={user?.userNumber ?? ''}
                 onChange={(e) => {
                   const digitsOnly = e.target.value.replace(/\D/g, '')
                   if (digitsOnly !== e.target.value) e.target.value = digitsOnly
@@ -476,7 +477,7 @@ function Checkout() {
                       type="button"
                       onClick={() => setSchedMode(opt.key)}
                       className={cn(
-                        'flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition',
+                        'flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition',
                         schedMode === opt.key
                           ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
                           : 'border-leaf-200 text-ink-soft hover:bg-white',
@@ -497,7 +498,7 @@ function Checkout() {
                           type="button"
                           onClick={() => setScheduleSlot(w.value)}
                           className={cn(
-                            'rounded-xl border px-3 py-2.5 text-xs font-medium transition',
+                            'min-w-0 rounded-xl border px-3 py-2.5 text-xs font-medium transition',
                             scheduleSlot === w.value
                               ? 'border-leaf-600 bg-leaf-100 text-leaf-800'
                               : 'border-leaf-200 text-ink-soft hover:bg-white',
@@ -656,5 +657,8 @@ function Checkout() {
 }
 
 const labelCls = 'mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-soft'
+// text-base (16px), not text-sm: iOS Safari auto-zooms the page on focus for
+// any input under 16px, which is what was producing the "header not fit" /
+// content-shifted-left glitch on mobile checkout.
 const inputCls =
-  'w-full rounded-lg border border-leaf-200 px-3 py-2 text-sm text-ink outline-none focus:border-leaf-500'
+  'w-full rounded-lg border border-leaf-200 px-3 py-2 text-base text-ink outline-none focus:border-leaf-500'

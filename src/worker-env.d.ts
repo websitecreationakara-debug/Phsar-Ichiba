@@ -27,4 +27,8 @@ declare namespace Cloudflare {
 interface ImportMetaEnv {
   // Public reCAPTCHA v3 site key, inlined into the client bundle at build time.
   readonly VITE_RECAPTCHA_SITE_KEY?: string;
+  // Dev-only auto sign-in credentials (see src/hooks/use-auth.tsx). Set in
+  // .env.local, which is gitignored and absent from production builds.
+  readonly VITE_DEV_ADMIN_EMAIL?: string;
+  readonly VITE_DEV_ADMIN_PASSWORD?: string;
 }
