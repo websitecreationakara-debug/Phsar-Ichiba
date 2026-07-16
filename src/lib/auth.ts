@@ -1,9 +1,11 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { verifyPassword } from "better-auth/crypto";
 import { admin, captcha, emailOTP } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
+import { isLegacyHash, verifyLegacyPassword } from "@/lib/legacy-password";
 
 const env: Record<string, string | undefined> = (() => {
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
@@ -64,6 +66,15 @@ export function getAuth() {
       enabled: true,
       // Gate sign-in until the email is verified via the OTP code (emailOTP plugin below).
       requireEmailVerification: true,
+      password: {
+        // Accounts imported from the old WooCommerce site keep their WordPress
+        // password hash (bcrypt "$wp$2y$..." or legacy phpass "$P$"/"$H$") so
+        // migrated customers can sign in with their existing password.
+        verify: async ({ hash, password }) => {
+          if (isLegacyHash(hash)) return verifyLegacyPassword(hash, password);
+          return verifyPassword({ hash, password });
+        },
+      },
       sendResetPassword: async ({ user, url }) => {
         await sendEmail(
           user.email,
