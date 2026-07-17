@@ -8,6 +8,10 @@ declare namespace Cloudflare {
     RESEND_API_KEY: string;
     RESEND_FROM?: string;
     ADMIN_NOTIFY_EMAIL?: string;
+    // Email branding overrides (see emailShell in src/lib/notify.ts). Default
+    // to the Phsar Ichiba wordmark and phsarichiba.com when unset.
+    SITE_LOGO_URL?: string;
+    SITE_URL?: string;
     TELEGRAM_BOT_TOKEN?: string;
     TELEGRAM_CHAT_ID?: string;
     TELEGRAM_TOPIC_ID?: string;

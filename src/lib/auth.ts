@@ -6,6 +6,7 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
 import { isLegacyHash, verifyLegacyPassword } from "@/lib/legacy-password";
+import { emailShell } from "@/lib/notify";
 import { withBase } from "@/lib/base-path";
 
 const env: Record<string, string | undefined> = (() => {
@@ -42,7 +43,7 @@ export function getAuth() {
       return;
     }
     try {
-      await resend.emails.send({ from, to, subject, html });
+      await resend.emails.send({ from, to, subject, html: emailShell(html) });
     } catch (e) {
       console.error("[auth-email] send failed", e);
     }
