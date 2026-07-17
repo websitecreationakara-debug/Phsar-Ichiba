@@ -61,11 +61,40 @@ const fixedSlotWindows = (dayLabel: (dayOffset: 0 | 1) => string) => {
   )
 }
 
+// Guest checkouts remember the typed contact/delivery details on this device so
+// repeat guests never re-type them. Signed-in users use the address book instead.
+const GUEST_DETAILS_KEY = 'phsar-ichiba:guest-details'
+type GuestDetails = {
+  name?: string
+  email?: string
+  phone?: string
+  customer_number?: string
+  address?: string
+  city?: string
+  lat?: number | null
+  lng?: number | null
+}
+const loadGuestDetails = (): GuestDetails | null => {
+  try {
+    const raw = localStorage.getItem(GUEST_DETAILS_KEY)
+    return raw ? (JSON.parse(raw) as GuestDetails) : null
+  } catch {
+    return null
+  }
+}
+const storeGuestDetails = (d: GuestDetails) => {
+  try {
+    localStorage.setItem(GUEST_DETAILS_KEY, JSON.stringify(d))
+  } catch {
+    // Storage unavailable (private mode) — the order itself is unaffected.
+  }
+}
+
 export const Route = createFileRoute('/_store/checkout')({ component: Checkout })
 
 function Checkout() {
   const { items, subtotal, clear, setQty, remove } = useCart()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { data: addresses = [] } = useMyAddresses(!!user)
   const qc = useQueryClient()
   const navigate = useNavigate()
@@ -118,6 +147,27 @@ function Checkout() {
     if (cityRef.current) cityRef.current.value = ''
     setCoords(null)
   }
+
+  // Pre-fill a returning guest's details from this device. Waits for auth to
+  // resolve so it never races the signed-in default-address effect below, and
+  // only fills fields the guest hasn't already typed into.
+  const appliedGuestDetails = useRef(false)
+  useEffect(() => {
+    if (appliedGuestDetails.current || authLoading || user) return
+    appliedGuestDetails.current = true
+    const d = loadGuestDetails()
+    if (!d) return
+    const fill = (ref: React.RefObject<HTMLInputElement | null>, value?: string) => {
+      if (ref.current && !ref.current.value && value) ref.current.value = value
+    }
+    fill(nameRef, d.name)
+    fill(emailRef, d.email)
+    fill(phoneRef, d.phone)
+    fill(customerNumberRef, d.customer_number)
+    fill(addressRef, d.address)
+    fill(cityRef, d.city)
+    if (d.lat != null && d.lng != null) setCoords((c) => c ?? { lat: d.lat!, lng: d.lng! })
+  }, [authLoading, user])
 
   useEffect(() => {
     if (appliedDefault.current || !user || addresses.length === 0) return
@@ -249,6 +299,23 @@ function Checkout() {
       return
     }
     setSubmitting(false)
+
+    if (!user) {
+      // Remember the guest's details on this device so the next checkout is
+      // pre-filled. Address fields are kept from a previous delivery order even
+      // when this one is pickup.
+      const prev = loadGuestDetails()
+      storeGuestDetails({
+        name: customerName,
+        email: customerEmail,
+        phone: phoneRef.current?.value ?? '',
+        customer_number: customerNumberRef.current?.value.trim() || prev?.customer_number,
+        address: fulfillmentMethod === 'pickup' ? prev?.address : (addressRef.current?.value ?? ''),
+        city: fulfillmentMethod === 'pickup' ? prev?.city : (cityRef.current?.value ?? ''),
+        lat: fulfillmentMethod === 'pickup' ? (prev?.lat ?? null) : (coords?.lat ?? null),
+        lng: fulfillmentMethod === 'pickup' ? (prev?.lng ?? null) : (coords?.lng ?? null),
+      })
+    }
 
     if (fulfillmentMethod === 'delivery' && user && selectedAddressId === null && saveNewAddress) {
       try {
@@ -461,6 +528,14 @@ function Checkout() {
                 />
                 {t('checkout.saveAddress')}
               </label>
+            )}
+            {fulfillmentMethod === 'delivery' && !user && !authLoading && (
+              <p className="text-sm text-ink-soft sm:col-span-2">
+                {t('checkout.guestSavedOnDevice')}{' '}
+                <Link to="/account" className="font-medium text-leaf-700 hover:underline">
+                  {t('checkout.guestSignInForMore')}
+                </Link>
+              </p>
             )}
 
             {fulfillmentMethod === 'delivery' && (
