@@ -4,7 +4,7 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
-  "workers_dev": true,
+  "workers_dev": false,
   "routes": [
     { "pattern": "phsarichiba.com", "custom_domain": true },
     { "pattern": "www.phsarichiba.com", "custom_domain": true }
