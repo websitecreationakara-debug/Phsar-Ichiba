@@ -190,6 +190,22 @@ export function getAuth() {
       }),
       tanstackStartCookies(),
     ],
+    // Persist rate-limit counters in D1 instead of per-isolate memory. On
+    // Workers each request can hit a fresh isolate with its own empty Map, so
+    // the default in-memory limiter never actually accumulates — an attacker
+    // can spray password guesses freely. Database storage makes better-auth's
+    // built-in limits real: 3 sign-in/sign-up attempts per 10s, 3 password-reset
+    // requests per 60s, 100 req/10s elsewhere (all keyed per client IP).
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+    },
+    advanced: {
+      // On Cloudflare the true client IP is in cf-connecting-ip; the default
+      // x-forwarded-for can be a proxy chain. Keying on the real IP ensures the
+      // limit is per-attacker, not a single shared global bucket.
+      ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] },
+    },
   });
 
   return _auth;

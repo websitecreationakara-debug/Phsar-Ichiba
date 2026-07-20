@@ -251,6 +251,16 @@ export const user = sqliteTable("user", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
+// Rate-limit counters for better-auth's database-backed limiter. Property names
+// (key/count/lastRequest) must match better-auth's model fields; rows are
+// keyed per client IP + path and auto-pruned by better-auth once stale.
+export const rateLimit = sqliteTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key").unique(),
+  count: integer("count"),
+  lastRequest: integer("last_request"),
+});
+
 // TOTP secret + backup codes for the better-auth twoFactor plugin. One row per
 // user with 2FA enabled. Secret/backupCodes are never returned to the client.
 export const twoFactor = sqliteTable("two_factor", {
