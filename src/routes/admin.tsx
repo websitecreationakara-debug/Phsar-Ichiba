@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { withBase } from "@/lib/base-path";
+import { authClient } from "@/lib/auth-client";
 import { TwoFactorSetup } from "@/components/two-factor-setup";
 
 export const Route = createFileRoute("/admin")({
@@ -49,6 +50,26 @@ function AdminLayout() {
 
   const { data: pendingCount = 0 } = usePendingOrderCount(!loading && !!user && isStaff);
   const prevCount = useRef<number | null>(null);
+
+  // Whether this account has a password (credential provider). TOTP setup needs
+  // one, so Google-only admins can't be forced through the 2FA gate — they rely
+  // on Google's own 2FA instead. null = still loading.
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    authClient
+      .listAccounts()
+      .then((res) => {
+        if (active) setHasPassword((res.data ?? []).some((a) => a.providerId === "credential"));
+      })
+      .catch(() => {
+        if (active) setHasPassword(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   // Collapsed sidebar shows icons only. Persisted so it survives navigation/reload.
   const [collapsed, setCollapsed] = useState(false);
@@ -110,7 +131,8 @@ function AdminLayout() {
   // Admins and managers hold the keys to the whole store — require 2FA before
   // they can use the dashboard. Google-only accounts (no password) can't set up
   // TOTP here, so they're exempt; assign such staff a password-based account.
-  const mustSetUp2fa = (isAdmin || isManager) && !user.twoFactorEnabled;
+  // While hasPassword is still loading (null), don't gate yet.
+  const mustSetUp2fa = (isAdmin || isManager) && hasPassword === true && !user.twoFactorEnabled;
   if (mustSetUp2fa) {
     return (
       <div className="grid min-h-screen place-items-center bg-leaf-100 p-4">
