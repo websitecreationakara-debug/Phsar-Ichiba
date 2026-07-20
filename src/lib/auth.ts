@@ -5,6 +5,7 @@ import { admin, captcha, emailOTP } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
+import { ac, roles } from "@/lib/admin-permissions";
 import { isLegacyHash, verifyLegacyPassword } from "@/lib/legacy-password";
 import { emailShell } from "@/lib/notify";
 import { withBase } from "@/lib/base-path";
@@ -102,7 +103,7 @@ export function getAuth() {
           }
         : undefined,
     plugins: [
-      admin(),
+      admin({ ac, roles }),
       // Google reCAPTCHA v3 on sign-up, sign-in, and password-reset requests.
       // Only active when the secret is configured — otherwise auth runs without
       // a captcha (the client also skips the token when no site key is set).

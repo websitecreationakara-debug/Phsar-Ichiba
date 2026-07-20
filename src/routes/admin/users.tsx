@@ -68,9 +68,18 @@ type AdminUser = {
   createdAt: string | Date;
 };
 
+const roleLabels: Record<string, string> = {
+  user: "User",
+  sales: "Sales",
+  marketing: "Marketing",
+  product_manager: "Product Manager",
+  user_manager: "User Manager",
+  admin: "Admin",
+};
+
 function UsersAdmin() {
   const qc = useQueryClient();
-  const { user: me } = useAuth();
+  const { user: me, isAdmin } = useAuth();
 
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", email: "", password: "", role: "user" });
@@ -163,7 +172,9 @@ function UsersAdmin() {
       name: addForm.name.trim(),
       email: addForm.email.trim(),
       password: addForm.password,
-      role: addForm.role as "user" | "admin",
+      // Passing any role requires the set-role permission, which user managers
+      // lack — omit it so their accounts are created with the default "user" role.
+      ...(isAdmin ? { role: addForm.role as "user" | "admin" } : {}),
       // Admin-created accounts skip the email-verification gate so they can sign in right away.
       data: { emailVerified: true },
     });
@@ -222,11 +233,11 @@ function UsersAdmin() {
             className={cn(inputCls, "h-9 w-36 py-1")}
           >
             <option value="all">All roles</option>
-            <option value="user">User</option>
-            <option value="sales">Sales</option>
-            <option value="marketing">Marketing</option>
-            <option value="product_manager">Product Manager</option>
-            <option value="admin">Admin</option>
+            {Object.entries(roleLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </select>
           <BtnPrimary onClick={() => setAddOpen(true)}>
             <UserPlus className="h-4 w-4" /> Add user
@@ -259,18 +270,22 @@ function UsersAdmin() {
                   <td className="px-6 py-3 text-ink">{u.userNumber || "—"}</td>
                   <td className="px-6 py-3 text-ink">{u.phone || "—"}</td>
                   <td className="px-6 py-3">
-                    <select
-                      value={u.role ?? "user"}
-                      onChange={(e) => changeRole(u.id, e.target.value)}
-                      disabled={isSelf}
-                      className={cn(inputCls, "h-8 w-32 py-1 text-xs")}
-                    >
-                      <option value="user">User</option>
-                      <option value="sales">Sales</option>
-                      <option value="marketing">Marketing</option>
-              <option value="product_manager">Product Manager</option>
-                      <option value="admin">Admin</option>
-                    </select>
+                    {isAdmin ? (
+                      <select
+                        value={u.role ?? "user"}
+                        onChange={(e) => changeRole(u.id, e.target.value)}
+                        disabled={isSelf}
+                        className={cn(inputCls, "h-8 w-32 py-1 text-xs")}
+                      >
+                        {Object.entries(roleLabels).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-xs text-ink">{roleLabels[u.role ?? "user"] ?? u.role}</span>
+                    )}
                   </td>
                   <td className="px-6 py-3">
                     <div className="flex flex-wrap gap-1">
@@ -295,21 +310,27 @@ function UsersAdmin() {
                       <BtnIcon title={u.emailVerified ? "Mark unverified" : "Verify email"} onClick={() => toggleVerified(u)}>
                         {u.emailVerified ? <MailX className="h-4 w-4" /> : <MailCheck className="h-4 w-4 text-leaf-600" />}
                       </BtnIcon>
-                      <BtnIcon
-                        title="Set password"
-                        onClick={() => {
-                          setPwTarget(u);
-                          setNewPassword("");
-                        }}
-                      >
-                        <KeyRound className="h-4 w-4" />
-                      </BtnIcon>
-                      <BtnIcon title={u.banned ? "Unban" : "Ban"} onClick={() => toggleBan(u)} disabled={isSelf}>
-                        {u.banned ? <Check className="h-4 w-4 text-leaf-600" /> : <Ban className="h-4 w-4" />}
-                      </BtnIcon>
-                      <BtnIcon title="Delete" onClick={() => remove(u)} disabled={isSelf}>
-                        <Trash2 className="h-4 w-4 text-tomato-600" />
-                      </BtnIcon>
+                      {/* Password/ban/delete are admin-only — a user manager with these
+                          could take over or lock out privileged accounts. */}
+                      {isAdmin && (
+                        <>
+                          <BtnIcon
+                            title="Set password"
+                            onClick={() => {
+                              setPwTarget(u);
+                              setNewPassword("");
+                            }}
+                          >
+                            <KeyRound className="h-4 w-4" />
+                          </BtnIcon>
+                          <BtnIcon title={u.banned ? "Unban" : "Ban"} onClick={() => toggleBan(u)} disabled={isSelf}>
+                            {u.banned ? <Check className="h-4 w-4 text-leaf-600" /> : <Ban className="h-4 w-4" />}
+                          </BtnIcon>
+                          <BtnIcon title="Delete" onClick={() => remove(u)} disabled={isSelf}>
+                            <Trash2 className="h-4 w-4 text-tomato-600" />
+                          </BtnIcon>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -368,15 +389,17 @@ function UsersAdmin() {
               className={inputCls}
             />
           </Field>
-          <Field label="Role">
-            <select value={addForm.role} onChange={(e) => setAddForm((f) => ({ ...f, role: e.target.value }))} className={inputCls}>
-              <option value="user">User</option>
-              <option value="sales">Sales</option>
-              <option value="marketing">Marketing</option>
-              <option value="product_manager">Product Manager</option>
-              <option value="admin">Admin</option>
-            </select>
-          </Field>
+          {isAdmin && (
+            <Field label="Role">
+              <select value={addForm.role} onChange={(e) => setAddForm((f) => ({ ...f, role: e.target.value }))} className={inputCls}>
+                {Object.entries(roleLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <BtnOutline onClick={() => setAddOpen(false)} disabled={busy}>

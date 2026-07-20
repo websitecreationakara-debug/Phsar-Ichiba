@@ -1,5 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { adminClient, emailOTPClient } from "better-auth/client/plugins";
+import { ac, roles } from "./admin-permissions";
 import { withBase } from "./base-path";
 
 // Same-origin: the client talks to /api/auth/* served by the request
@@ -10,7 +11,7 @@ import { withBase } from "./base-path";
 // under a subpath deployment.
 export const authClient = createAuthClient({
   basePath: withBase("/api/auth"),
-  plugins: [adminClient(), emailOTPClient()],
+  plugins: [adminClient({ ac, roles }), emailOTPClient()],
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;
