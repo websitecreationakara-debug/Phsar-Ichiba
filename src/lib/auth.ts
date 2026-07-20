@@ -118,6 +118,32 @@ export function getAuth() {
           });
         }
       }),
+      // Transparent password-hash upgrade. Accounts imported from the old
+      // WooCommerce site still store WordPress hashes (phpass salted-MD5 or
+      // WP bcrypt). On a successful email+password sign-in we have the correct
+      // plaintext in hand, so we silently re-hash it with better-auth's modern
+      // scrypt and overwrite the stored hash — one-time, invisible to the user.
+      // Runs only when a session was actually created (password was correct);
+      // modern (non-legacy) hashes are left untouched, so it never loops.
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== "/sign-in/email") return;
+        const session = ctx.context.newSession;
+        if (!session?.user) return;
+        const password = (ctx.body as { password?: unknown } | undefined)?.password;
+        if (typeof password !== "string" || !password) return;
+        try {
+          const accounts = await ctx.context.internalAdapter.findAccounts(session.user.id);
+          const credential = accounts.find(
+            (a: { providerId?: string; password?: string | null }) => a.providerId === "credential",
+          );
+          if (!credential?.password || !isLegacyHash(credential.password)) return;
+          const newHash = await ctx.context.password.hash(password);
+          await ctx.context.internalAdapter.updatePassword(session.user.id, newHash);
+        } catch (e) {
+          // Never let a hash-upgrade failure break an otherwise-successful login.
+          console.error("[auth] legacy hash upgrade failed", e);
+        }
+      }),
     },
     socialProviders:
       env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
