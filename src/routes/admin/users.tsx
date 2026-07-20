@@ -261,6 +261,8 @@ function UsersAdmin() {
           <tbody>
             {pagedUsers.map((u) => {
               const isSelf = u.id === me?.id;
+              // Managers can't touch admin accounts (also enforced server-side).
+              const adminLocked = !isAdmin && (u.role ?? "").split(",").includes("admin");
               return (
                 <tr key={u.id} className="border-t border-leaf-100">
                   <td className="px-6 py-3">
@@ -307,7 +309,11 @@ function UsersAdmin() {
                   <td className="px-6 py-3 text-ink">{new Date(u.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-3 text-right">
                     <div className="flex justify-end gap-1">
-                      <BtnIcon title={u.emailVerified ? "Mark unverified" : "Verify email"} onClick={() => toggleVerified(u)}>
+                      <BtnIcon
+                        title={u.emailVerified ? "Mark unverified" : "Verify email"}
+                        onClick={() => toggleVerified(u)}
+                        disabled={adminLocked}
+                      >
                         {u.emailVerified ? <MailX className="h-4 w-4" /> : <MailCheck className="h-4 w-4 text-leaf-600" />}
                       </BtnIcon>
                       {(isAdmin || isManager) && (
@@ -318,13 +324,14 @@ function UsersAdmin() {
                               setPwTarget(u);
                               setNewPassword("");
                             }}
+                            disabled={adminLocked}
                           >
                             <KeyRound className="h-4 w-4" />
                           </BtnIcon>
-                          <BtnIcon title={u.banned ? "Unban" : "Ban"} onClick={() => toggleBan(u)} disabled={isSelf}>
+                          <BtnIcon title={u.banned ? "Unban" : "Ban"} onClick={() => toggleBan(u)} disabled={isSelf || adminLocked}>
                             {u.banned ? <Check className="h-4 w-4 text-leaf-600" /> : <Ban className="h-4 w-4" />}
                           </BtnIcon>
-                          <BtnIcon title="Delete" onClick={() => remove(u)} disabled={isSelf}>
+                          <BtnIcon title="Delete" onClick={() => remove(u)} disabled={isSelf || adminLocked}>
                             <Trash2 className="h-4 w-4 text-tomato-600" />
                           </BtnIcon>
                         </>

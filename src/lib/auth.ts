@@ -1,5 +1,6 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { verifyPassword } from "better-auth/crypto";
 import { admin, captcha, emailOTP } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
@@ -92,6 +93,31 @@ export function getAuth() {
           url,
         );
       },
+    },
+    hooks: {
+      // Admin accounts are off-limits to managers. better-auth's permission
+      // model only checks WHAT action is taken, not WHO it targets — without
+      // this, a manager could reset an admin's password (account takeover),
+      // ban/delete an admin, or list an admin's session tokens. Every
+      // /admin/* endpoint that targets a user carries `userId` in the body,
+      // so one generic guard covers them all.
+      before: createAuthMiddleware(async (ctx) => {
+        if (!ctx.path.startsWith("/admin/")) return;
+        const targetId = (ctx.body as { userId?: unknown } | undefined)?.userId;
+        if (typeof targetId !== "string" || !targetId) return;
+        const session = await getSessionFromCtx(ctx);
+        const actorRoles = ((session?.user as { role?: string | null } | undefined)?.role ?? "")
+          .split(",")
+          .map((r) => r.trim());
+        if (actorRoles.includes("admin") || !actorRoles.includes("manager")) return;
+        const target = await ctx.context.internalAdapter.findUserById(targetId);
+        const targetRoles = ((target as { role?: string | null } | null)?.role ?? "").split(",");
+        if (targetRoles.map((r) => r.trim()).includes("admin")) {
+          throw new APIError("FORBIDDEN", {
+            message: "Managers cannot modify admin accounts",
+          });
+        }
+      }),
     },
     socialProviders:
       env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
