@@ -17,9 +17,11 @@ import {
   ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { withBase } from "@/lib/base-path";
+import { TwoFactorSetup } from "@/components/two-factor-setup";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -40,7 +42,7 @@ const nav = [
 ] as const;
 
 function AdminLayout() {
-  const { user, isAdmin, isSales, isMarketing, isProductManager, isManager, isStaff, canAccessAdmin, loading } =
+  const { user, isAdmin, isSales, isMarketing, isProductManager, isManager, isStaff, canAccessAdmin, loading, signOut } =
     useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -103,6 +105,31 @@ function AdminLayout() {
 
   if (loading || !user || !canAccessAdmin) {
     return <div className="grid min-h-screen place-items-center text-ink-soft">Checking access…</div>;
+  }
+
+  // Admins and managers hold the keys to the whole store — require 2FA before
+  // they can use the dashboard. Google-only accounts (no password) can't set up
+  // TOTP here, so they're exempt; assign such staff a password-based account.
+  const mustSetUp2fa = (isAdmin || isManager) && !user.twoFactorEnabled;
+  if (mustSetUp2fa) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-leaf-100 p-4">
+        <div className="w-full max-w-lg space-y-5 rounded-2xl border border-leaf-200 bg-white p-6 md:p-8">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-6 w-6 text-leaf-600" />
+            <h1 className="font-display text-xl font-bold text-ink">Secure your admin account</h1>
+          </div>
+          <p className="text-sm text-ink-soft">
+            Two-factor authentication is required for {isAdmin ? "admin" : "manager"} accounts. Set it up once to
+            continue — you'll enter a code from your authenticator app each time you sign in.
+          </p>
+          <TwoFactorSetup enabled={false} onChanged={() => window.location.reload()} />
+          <button onClick={() => signOut().then(() => navigate({ to: "/" }))} className="text-sm text-ink-soft hover:text-ink">
+            Sign out instead
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

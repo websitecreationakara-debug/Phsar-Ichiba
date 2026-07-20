@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import { adminClient, emailOTPClient } from "better-auth/client/plugins";
+import { adminClient, emailOTPClient, twoFactorClient } from "better-auth/client/plugins";
 import { ac, roles } from "./admin-permissions";
 import { withBase } from "./base-path";
 
@@ -11,7 +11,7 @@ import { withBase } from "./base-path";
 // under a subpath deployment.
 export const authClient = createAuthClient({
   basePath: withBase("/api/auth"),
-  plugins: [adminClient({ ac, roles }), emailOTPClient()],
+  plugins: [adminClient({ ac, roles }), emailOTPClient(), twoFactorClient()],
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;

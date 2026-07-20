@@ -2,7 +2,7 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { verifyPassword } from "better-auth/crypto";
-import { admin, captcha, emailOTP } from "better-auth/plugins";
+import { admin, captcha, emailOTP, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
@@ -130,6 +130,10 @@ export function getAuth() {
         : undefined,
     plugins: [
       admin({ ac, roles }),
+      // TOTP authenticator-app 2FA. When a user has it enabled, sign-in returns
+      // a twoFactorRedirect instead of a session until they enter a valid code.
+      // "issuer" is the label shown in Google Authenticator etc.
+      twoFactor({ issuer: "Phsar Ichiba" }),
       // Google reCAPTCHA v3 on sign-up, sign-in, and password-reset requests.
       // Only active when the secret is configured — otherwise auth runs without
       // a captcha (the client also skips the token when no site key is set).

@@ -8,6 +8,7 @@ type AuthUser = {
   name: string | null;
   role: string | null;
   userNumber: string | null;
+  twoFactorEnabled: boolean;
 } | null;
 
 type AuthCtx = {
@@ -22,7 +23,10 @@ type AuthCtx = {
   isStaff: boolean;
   // Anyone allowed into the /admin area: admin, manager, sales, marketing, or product_manager.
   canAccessAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  // `twoFactorRequired` is true when the password was correct but a TOTP code is
+  // still needed — the caller should prompt for it and call verifyTotp.
+  signIn: (email: string, password: string) => Promise<{ error: string | null; twoFactorRequired?: boolean }>;
+  verifyTotp: (code: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   verifyEmailOtp: (email: string, otp: string) => Promise<{ error: string | null }>;
@@ -42,10 +46,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, isPending } = authClient.useSession();
 
   const u = data?.user as
-    | { id: string; email: string; name?: string | null; role?: string | null; userNumber?: string | null }
+    | {
+        id: string;
+        email: string;
+        name?: string | null;
+        role?: string | null;
+        userNumber?: string | null;
+        twoFactorEnabled?: boolean | null;
+      }
     | undefined;
   const user: AuthUser = u
-    ? { id: u.id, email: u.email, name: u.name ?? null, role: u.role ?? null, userNumber: u.userNumber ?? null }
+    ? {
+        id: u.id,
+        email: u.email,
+        name: u.name ?? null,
+        role: u.role ?? null,
+        userNumber: u.userNumber ?? null,
+        twoFactorEnabled: !!u.twoFactorEnabled,
+      }
     : null;
 
   // Dev-only convenience: auto sign in with credentials from .env.local so
@@ -64,11 +82,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isPending, user]);
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
-    const { error } = await authClient.signIn.email({
+    const res = await authClient.signIn.email({
       email,
       password,
       ...(await withCaptcha("sign_in")),
     });
+    // With 2FA enabled, better-auth returns twoFactorRedirect and withholds the
+    // session until a valid TOTP code is supplied via verifyTotp.
+    const twoFactorRequired = !!(res.data as { twoFactorRedirect?: boolean } | null)?.twoFactorRedirect;
+    return { error: res.error?.message ?? null, twoFactorRequired };
+  };
+
+  const verifyTotp: AuthCtx["verifyTotp"] = async (code) => {
+    const { error } = await authClient.twoFactor.verifyTotp({ code: code.trim() });
     return { error: error?.message ?? null };
   };
 
@@ -135,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user?.role === "marketing" ||
           user?.role === "product_manager",
         signIn,
+        verifyTotp,
         signUp,
         signInWithGoogle,
         verifyEmailOtp,

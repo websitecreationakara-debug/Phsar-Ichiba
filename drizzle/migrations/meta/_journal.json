@@ -71,6 +71,13 @@
       "when": 1784177985653,
       "tag": "0009_add_product_title_en",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1784524980897,
+      "tag": "0010_sleepy_smasher",
+      "breakpoints": true
     }
   ]
 }

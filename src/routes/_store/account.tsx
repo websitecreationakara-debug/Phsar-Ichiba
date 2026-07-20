@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { User, LogOut, Mail, Lock, KeyRound, MapPin, Package, FileDown } from 'lucide-react'
+import { User, LogOut, Mail, Lock, KeyRound, MapPin, Package, FileDown, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { authClient } from '@/lib/auth-client'
+import { TwoFactorSetup } from '@/components/two-factor-setup'
 import { useMyOrders } from '@/hooks/use-products'
 import { downloadInvoice } from '@/lib/invoice'
 import { useI18n } from '@/lib/i18n'
@@ -11,7 +12,7 @@ import { formatPrice, cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_store/account')({ component: AccountPage })
 
-type Step = 'form' | 'verify' | 'reset-request' | 'reset-verify'
+type Step = 'form' | 'verify' | 'reset-request' | 'reset-verify' | 'totp'
 
 const inputCls =
   'w-full rounded-lg border border-leaf-200 px-3 py-2 text-sm text-ink outline-none focus:border-leaf-500'
@@ -22,7 +23,7 @@ const primaryBtnCls =
   'w-full rounded-full bg-leaf-600 py-3 text-sm font-bold text-white transition hover:bg-leaf-700 disabled:opacity-60'
 
 function AccountPage() {
-  const { user, loading, signIn, signUp, signOut, signInWithGoogle, verifyEmailOtp, resendOtp, requestPasswordReset, resetPasswordWithOtp } =
+  const { user, loading, signIn, verifyTotp, signUp, signOut, signInWithGoogle, verifyEmailOtp, resendOtp, requestPasswordReset, resetPasswordWithOtp } =
     useAuth()
   const { t } = useI18n()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -62,7 +63,11 @@ function AccountPage() {
     setSubmitting(true)
     if (mode === 'signin') {
       const result = await signIn(email, password)
-      if (result.error) {
+      if (result.twoFactorRequired) {
+        // Password was correct; a TOTP code is still needed to finish.
+        setCode('')
+        setStep('totp')
+      } else if (result.error) {
         // Unverified accounts can't sign in yet — send a fresh code and go verify.
         if (/verif/i.test(result.error)) {
           setPendingEmail(email)
@@ -96,11 +101,27 @@ function AccountPage() {
     }
     // verify-email confirms the address but doesn't create a session — sign in to land them in.
     const signInRes = await signIn(pendingEmail, password)
-    if (signInRes.error) {
+    if (signInRes.twoFactorRequired) {
+      setCode('')
+      setStep('totp')
+    } else if (signInRes.error) {
       setStep('form')
       setMode('signin')
     }
     setSubmitting(false)
+  }
+
+  const submitTotp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSubmitting(true)
+    const result = await verifyTotp(code.trim())
+    setSubmitting(false)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    // Session is now established; the `if (user)` branch takes over on re-render.
   }
 
   const requestReset = async (e: React.FormEvent) => {
@@ -136,6 +157,45 @@ function AccountPage() {
       setNewPassword('')
     }
     setSubmitting(false)
+  }
+
+  if (step === 'totp') {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16">
+        <h1 className="text-center font-display text-2xl font-bold text-ink">{t('account.twoFactorTitle')}</h1>
+        <p className="mt-1 text-center text-sm text-ink-soft">{t('account.twoFactorSub')}</p>
+        <form onSubmit={submitTotp} className="mt-6 space-y-4 rounded-2xl border border-leaf-100 bg-white p-6">
+          <div>
+            <label className={labelCls}>{t('account.twoFactorCode')}</label>
+            <input
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              required
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              className={otpCls}
+            />
+          </div>
+          {error && <p className="text-sm text-tomato-600">{error}</p>}
+          <button type="submit" disabled={submitting || code.length < 6} className={primaryBtnCls}>
+            {submitting ? t('account.verifying') : t('account.twoFactorVerifyBtn')}
+          </button>
+        </form>
+        <button
+          type="button"
+          onClick={() => {
+            setStep('form')
+            setCode('')
+            setError(null)
+          }}
+          className="mt-4 text-sm text-ink-soft hover:text-ink"
+        >
+          {t('account.backToSignIn')}
+        </button>
+      </div>
+    )
   }
 
   if (step === 'verify') {
@@ -376,6 +436,8 @@ function SignedInAccount({
   resetPasswordWithOtp: (email: string, otp: string, password: string) => Promise<{ error: string | null }>
 }) {
   const { t } = useI18n()
+  const { user: authUser } = useAuth()
+  const twoFactorEnabled = !!authUser?.twoFactorEnabled
   const { data: orders = [], isLoading: ordersLoading } = useMyOrders(true)
 
   const [name, setName] = useState(user.name ?? '')
@@ -638,6 +700,20 @@ function SignedInAccount({
           </div>
         )}
       </div>
+
+      {/* Two-factor authentication */}
+      {hasPassword && (
+        <div className="space-y-4 rounded-2xl border border-leaf-100 bg-white p-5 md:p-6">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-ink-soft" />
+            <h2 className="font-display text-lg font-semibold text-ink">{t('account.securityTitle')}</h2>
+          </div>
+          <TwoFactorSetup
+            enabled={twoFactorEnabled}
+            onChanged={() => toast.success(t('account.profileUpdated'))}
+          />
+        </div>
+      )}
 
       {/* Addresses */}
       <div className="flex items-center justify-between rounded-2xl border border-leaf-100 bg-white p-5 md:p-6">
