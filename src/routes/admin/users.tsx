@@ -73,13 +73,13 @@ const roleLabels: Record<string, string> = {
   sales: "Sales",
   marketing: "Marketing",
   product_manager: "Product Manager",
-  user_manager: "User Manager",
+  manager: "Manager",
   admin: "Admin",
 };
 
 function UsersAdmin() {
   const qc = useQueryClient();
-  const { user: me, isAdmin } = useAuth();
+  const { user: me, isAdmin, isManager } = useAuth();
 
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", email: "", password: "", role: "user" });
@@ -172,7 +172,7 @@ function UsersAdmin() {
       name: addForm.name.trim(),
       email: addForm.email.trim(),
       password: addForm.password,
-      // Passing any role requires the set-role permission, which user managers
+      // Passing any role requires the set-role permission, which managers
       // lack — omit it so their accounts are created with the default "user" role.
       ...(isAdmin ? { role: addForm.role as "user" | "admin" } : {}),
       // Admin-created accounts skip the email-verification gate so they can sign in right away.
@@ -310,9 +310,7 @@ function UsersAdmin() {
                       <BtnIcon title={u.emailVerified ? "Mark unverified" : "Verify email"} onClick={() => toggleVerified(u)}>
                         {u.emailVerified ? <MailX className="h-4 w-4" /> : <MailCheck className="h-4 w-4 text-leaf-600" />}
                       </BtnIcon>
-                      {/* Password/ban/delete are admin-only — a user manager with these
-                          could take over or lock out privileged accounts. */}
-                      {isAdmin && (
+                      {(isAdmin || isManager) && (
                         <>
                           <BtnIcon
                             title="Set password"

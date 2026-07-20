@@ -40,7 +40,7 @@ const nav = [
 ] as const;
 
 function AdminLayout() {
-  const { user, isAdmin, isSales, isMarketing, isProductManager, isUserManager, isStaff, canAccessAdmin, loading } =
+  const { user, isAdmin, isSales, isMarketing, isProductManager, isManager, isStaff, canAccessAdmin, loading } =
     useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -71,16 +71,15 @@ function AdminLayout() {
   const productManagerPaths = ["/admin/products", "/admin/categories", "/admin/media"];
   const productManagerBlocked =
     isProductManager && !isAdmin && !productManagerPaths.some((p) => path.startsWith(p));
-  // User manager only sees the Users page — can add accounts, never change roles.
-  const userManagerBlocked = isUserManager && !isAdmin && !path.startsWith("/admin/users");
-  const visibleNav = isAdmin
-    ? nav
-    : isMarketing
-      ? nav.filter((n) => n.to === "/admin" || marketingPaths.includes(n.to))
-      : isProductManager
-        ? nav.filter((n) => productManagerPaths.includes(n.to))
-        : isUserManager
-          ? nav.filter((n) => n.to === "/admin/users")
+  // Manager is a full admin in the dashboard (the only difference — no role
+  // changes — is enforced on the Users page and server-side).
+  const visibleNav =
+    isAdmin || isManager
+      ? nav
+      : isMarketing
+        ? nav.filter((n) => n.to === "/admin" || marketingPaths.includes(n.to))
+        : isProductManager
+          ? nav.filter((n) => productManagerPaths.includes(n.to))
           : nav.filter((n) => n.to === "/admin/orders");
 
   useEffect(() => {
@@ -91,8 +90,7 @@ function AdminLayout() {
     if (salesBlocked) navigate({ to: "/admin/orders" });
     else if (marketingBlocked) navigate({ to: "/admin" });
     else if (productManagerBlocked) navigate({ to: "/admin/products" });
-    else if (userManagerBlocked) navigate({ to: "/admin/users" });
-  }, [salesBlocked, marketingBlocked, productManagerBlocked, userManagerBlocked, navigate]);
+  }, [salesBlocked, marketingBlocked, productManagerBlocked, navigate]);
 
   useEffect(() => {
     // Alert only on an actual increase, never on first load.
@@ -190,7 +188,7 @@ function AdminLayout() {
         </div>
       </aside>
       <main className="flex-1 overflow-x-auto bg-cream p-8">
-        {salesBlocked || marketingBlocked || productManagerBlocked || userManagerBlocked ? (
+        {salesBlocked || marketingBlocked || productManagerBlocked ? (
           <div className="text-ink-soft">Redirecting…</div>
         ) : (
           <Outlet />

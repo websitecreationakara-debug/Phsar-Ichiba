@@ -12,12 +12,13 @@ const noAdminApi = ac.newRole({ user: [], session: [] });
 
 export const roles = {
   admin: ac.newRole({ ...adminAc.statements }),
-  // Staff-onboarding role: may create accounts (always with the default "user"
-  // role — passing any role requires the "set-role" permission, which this
-  // role deliberately lacks), list users, and edit basic fields such as
-  // emailVerified. No set-role, ban, delete, set-password, or impersonate, so
-  // a user manager can never promote anyone or take over another account.
-  user_manager: ac.newRole({ user: ["create", "list", "update"] }),
+  // Everything admin can do except "set-role": a manager can never change
+  // anyone's role (better-auth also requires set-role to create an account
+  // with a non-default role, so managers only ever create plain users).
+  manager: ac.newRole({
+    user: ["create", "list", "ban", "impersonate", "delete", "set-password", "set-email", "get", "update"],
+    session: ["list", "revoke", "delete"],
+  }),
   user: noAdminApi,
   sales: noAdminApi,
   marketing: noAdminApi,

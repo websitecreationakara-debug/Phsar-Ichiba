@@ -15,9 +15,14 @@ export async function requireUser(): Promise<SessionUser> {
   return user;
 }
 
+// "manager" is a full admin everywhere in the app except changing user roles
+// (that single restriction lives in better-auth's admin permissions — see
+// src/lib/admin-permissions.ts), so every gate below treats it like admin.
+const isAdminRole = (role?: string | null) => role === "admin" || role === "manager";
+
 export async function requireAdmin(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "admin") throw new Error("Forbidden: admin only");
+  if (!isAdminRole(user.role)) throw new Error("Forbidden: admin only");
   return user;
 }
 
@@ -26,7 +31,7 @@ export async function requireAdmin(): Promise<SessionUser> {
 // codes — while keeping users/settings/banners/orders admin-only.
 export async function requireManager(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "admin" && user.role !== "marketing")
+  if (!isAdminRole(user.role) && user.role !== "marketing")
     throw new Error("Forbidden: manager only");
   return user;
 }
@@ -36,7 +41,7 @@ export async function requireManager(): Promise<SessionUser> {
 // catalog, not promotions/promo codes/analytics (marketing-only extras).
 export async function requireCatalogManager(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "admin" && user.role !== "marketing" && user.role !== "product_manager")
+  if (!isAdminRole(user.role) && user.role !== "marketing" && user.role !== "product_manager")
     throw new Error("Forbidden: catalog manager only");
   return user;
 }
@@ -44,7 +49,7 @@ export async function requireCatalogManager(): Promise<SessionUser> {
 // Admin or sales — sales staff are scoped to order handling only.
 export async function requireStaff(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "admin" && user.role !== "sales") throw new Error("Forbidden: staff only");
+  if (!isAdminRole(user.role) && user.role !== "sales") throw new Error("Forbidden: staff only");
   return user;
 }
 
@@ -52,7 +57,7 @@ export async function requireStaff(): Promise<SessionUser> {
 // mutations stay on requireStaff/requireAdmin — marketing can view, not manage.
 export async function requireOrderViewer(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "admin" && user.role !== "sales" && user.role !== "marketing")
+  if (!isAdminRole(user.role) && user.role !== "sales" && user.role !== "marketing")
     throw new Error("Forbidden");
   return user;
 }
