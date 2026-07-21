@@ -26,6 +26,16 @@ export async function requireAdmin(): Promise<SessionUser> {
   return user;
 }
 
+// Strictly role === "admin" — unlike every other gate here, this does NOT
+// treat "manager" as admin. Reserved for irreversible, whole-store actions
+// (e.g. database restore) where "full admin except role changes" isn't a
+// tight enough boundary.
+export async function requireSuperAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "admin") throw new Error("Forbidden: admin only");
+  return user;
+}
+
 // Catalog/marketing manager: admin or marketing. Gates the writes the marketing
 // role is allowed to perform — products, categories, media, promotions, promo
 // codes — while keeping users/settings/banners/orders admin-only.

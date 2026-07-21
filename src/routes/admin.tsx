@@ -18,6 +18,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
+  DatabaseBackup,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { withBase } from "@/lib/base-path";
@@ -40,6 +41,7 @@ const nav = [
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/settings", label: "Settings", icon: Settings },
+  { to: "/admin/restore", label: "Restore Backup", icon: DatabaseBackup },
 ] as const;
 
 function AdminLayout() {
@@ -94,16 +96,22 @@ function AdminLayout() {
   const productManagerPaths = ["/admin/products", "/admin/categories", "/admin/media"];
   const productManagerBlocked =
     isProductManager && !isAdmin && !productManagerPaths.some((p) => path.startsWith(p));
-  // Manager is a full admin in the dashboard (the only difference — no role
-  // changes — is enforced on the Users page and server-side).
+  // Manager is a full admin in the dashboard, with two exceptions enforced
+  // server-side and here: no role changes (Users page), and no database
+  // restore — that one's scary enough to keep to true admins only.
   const visibleNav =
-    isAdmin || isManager
+    isAdmin
       ? nav
-      : isMarketing
-        ? nav.filter((n) => n.to === "/admin" || marketingPaths.includes(n.to))
-        : isProductManager
-          ? nav.filter((n) => productManagerPaths.includes(n.to))
-          : nav.filter((n) => n.to === "/admin/orders");
+      : isManager
+        ? nav.filter((n) => n.to !== "/admin/restore")
+        : isMarketing
+          ? nav.filter((n) => n.to === "/admin" || marketingPaths.includes(n.to))
+          : isProductManager
+            ? nav.filter((n) => productManagerPaths.includes(n.to))
+            : nav.filter((n) => n.to === "/admin/orders");
+
+  // Only true admins may reach the restore page, even by typing the URL.
+  const restoreBlocked = path.startsWith("/admin/restore") && !isAdmin;
 
   useEffect(() => {
     if (!loading && (!user || !canAccessAdmin)) navigate({ to: "/" });
@@ -113,7 +121,8 @@ function AdminLayout() {
     if (salesBlocked) navigate({ to: "/admin/orders" });
     else if (marketingBlocked) navigate({ to: "/admin" });
     else if (productManagerBlocked) navigate({ to: "/admin/products" });
-  }, [salesBlocked, marketingBlocked, productManagerBlocked, navigate]);
+    else if (restoreBlocked) navigate({ to: "/admin" });
+  }, [salesBlocked, marketingBlocked, productManagerBlocked, restoreBlocked, navigate]);
 
   useEffect(() => {
     // Alert only on an actual increase, never on first load.
@@ -237,7 +246,7 @@ function AdminLayout() {
         </div>
       </aside>
       <main className="flex-1 overflow-x-auto bg-cream p-8">
-        {salesBlocked || marketingBlocked || productManagerBlocked ? (
+        {salesBlocked || marketingBlocked || productManagerBlocked || restoreBlocked ? (
           <div className="text-ink-soft">Redirecting…</div>
         ) : (
           <Outlet />

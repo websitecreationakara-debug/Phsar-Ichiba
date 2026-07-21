@@ -33,9 +33,17 @@
   --color-carrot-600: #d35e10;
   --color-carrot-700: #ac4a0d;
 
-  /* Tomato red — sparingly, for sale/urgent badges. */
+  /* Tomato red — sparingly, for sale/urgent badges and destructive actions. */
+  --color-tomato-50: #fdf0ec;
+  --color-tomato-100: #fadcd3;
+  --color-tomato-200: #f4b8a8;
+  --color-tomato-300: #ec8f78;
+  --color-tomato-400: #e66f4d;
   --color-tomato-500: #e2542a;
   --color-tomato-600: #c6431e;
+  --color-tomato-700: #a3371a;
+  --color-tomato-800: #822c16;
+  --color-tomato-900: #562911;
 }
 
 * {

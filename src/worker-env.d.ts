@@ -25,6 +25,9 @@ declare namespace Cloudflare {
     // Google reCAPTCHA v3 server secret. When unset, the captcha plugin is not
     // registered (see src/lib/auth.ts). Pair with VITE_RECAPTCHA_SITE_KEY.
     RECAPTCHA_SECRET_KEY?: string;
+    // Cloudflare API token (Account > D1 > Edit) used by src/data/restore.ts
+    // to apply an uploaded backup via the D1 HTTP API. Admin-only, irreversible.
+    CLOUDFLARE_D1_RESTORE_TOKEN?: string;
   }
 }
 

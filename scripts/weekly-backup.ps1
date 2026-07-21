@@ -1,5 +1,6 @@
 # Weekly backup for Phsar Ichiba: exports the production D1 database and
-# snapshots the source tree to D:\Backups\phsar-ichiba\, then prunes backups
+# snapshots the source tree to D:\Backups\phsar-ichiba\, uploads both to
+# Google Drive (gdrive:Phsar Ichiba) via rclone, then prunes local backups
 # older than $RetentionWeeks. Registered as a Windows Scheduled Task - see
 # scripts/register-weekly-backup.ps1.
 
@@ -9,6 +10,8 @@ $ErrorActionPreference = "Stop"
 $ProjectDir = "D:\Ecommerce\Phsar Ichiba"
 $BackupDir = "D:\Backups\phsar-ichiba"
 $RetentionWeeks = 8
+$Rclone = "C:\Users\Demo\.project-tracker\bin\rclone.exe"
+$DriveRemote = "gdrive:Phsar Ichiba"
 $Date = Get-Date -Format "yyyy-MM-dd"
 $LogFile = Join-Path $BackupDir "backup.log"
 
@@ -38,6 +41,14 @@ try {
   $CommitHash = (& git rev-parse --short HEAD).Trim()
   $CommitMsg = (& git log -1 --format=%s).Trim()
   Log "Backup complete: db=$((Get-Item $DbFile).Length) bytes, source=$((Get-Item $SrcFile).Length) bytes, commit=$CommitHash ($CommitMsg)"
+
+  Log "Uploading to Google Drive ($DriveRemote)"
+  & $Rclone copy $DbFile $DriveRemote -q 2>&1 | ForEach-Object { Log $_ }
+  & $Rclone copy $SrcFile $DriveRemote -q 2>&1 | ForEach-Object { Log $_ }
+  Log "Google Drive upload complete"
+
+  Log "Pruning Drive backups older than $RetentionWeeks weeks"
+  & $Rclone delete $DriveRemote --min-age "$($RetentionWeeks * 7)d" --include "phsar-ichiba_*" -q 2>&1 | ForEach-Object { Log $_ }
 
   # Prune backups older than $RetentionWeeks.
   $cutoff = (Get-Date).AddDays(-7 * $RetentionWeeks)
