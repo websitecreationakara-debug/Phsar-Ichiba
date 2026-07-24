@@ -3,6 +3,7 @@
 // them out of the storefront bundle entirely.
 
 import { withBase } from "./base-path";
+import { formatShippingAddress } from "./utils";
 
 type InvoiceItem = { id?: string; title: string; qty: number; price: number };
 
@@ -137,7 +138,7 @@ async function buildInvoice(order: InvoiceOrder) {
     order.customer_name,
     order.customer_email,
     order.customer_phone,
-    [order.address, order.city, order.postal_code].filter(Boolean).join(", ") || null,
+    formatShippingAddress(order.address, order.city, order.postal_code) || null,
   ].filter((l): l is string => Boolean(l));
   let y = 56;
   for (const line of billLines) {
