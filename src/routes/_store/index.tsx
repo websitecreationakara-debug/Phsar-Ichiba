@@ -1,5 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useHeroSlides, useCategories, useProducts, useAllVariations } from '@/hooks/use-products'
+import {
+  useHeroSlides,
+  useCategories,
+  useProducts,
+  useAllVariations,
+} from '@/hooks/use-products'
 import { useI18n, localizedCategoryName } from '@/lib/i18n'
 import { HeroCarousel } from '@/components/hero-carousel'
 import { ProductCard } from '@/components/product-card'
@@ -17,15 +22,26 @@ function Home() {
 
   const categoryById = new Map((categories ?? []).map((c) => [c.id, c]))
   const variationsByProduct = groupVariations(variations ?? [])
-  const onSale = (products ?? []).filter((p) => p.sale_price != null && p.sale_price < p.price)
-  const featured = (products ?? []).slice(0, 8)
+  const onSale = (products ?? []).filter(
+    (p) => p.sale_price != null && p.sale_price < p.price,
+  )
+  // Featured section shows admin-marked products (products.featured), newest
+  // first. Falls back to the newest products overall if none are marked yet.
+  const featuredPool = (products ?? []).some((p) => p.featured)
+    ? (products ?? []).filter((p) => p.featured)
+    : (products ?? [])
+  const featured = [...featuredPool]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 8)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <HeroCarousel slides={slides ?? []} />
 
       <section className="mt-12">
-        <h2 className="font-display text-2xl font-bold text-ink">{t('home.shopByCategory')}</h2>
+        <h2 className="font-display text-2xl font-bold text-ink">
+          {t('home.shopByCategory')}
+        </h2>
         <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
           {(categories ?? []).map((c) => {
             const { icon: Icon, gradient } = categoryArt(c.slug)
@@ -53,8 +69,13 @@ function Home() {
       {onSale.length > 0 && (
         <section className="mt-12">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl font-bold text-ink">{t('home.onSale')}</h2>
-            <Link to="/shop" className="text-sm font-semibold text-leaf-700 hover:underline">
+            <h2 className="font-display text-2xl font-bold text-ink">
+              {t('home.onSale')}
+            </h2>
+            <Link
+              to="/shop"
+              className="text-sm font-semibold text-leaf-700 hover:underline"
+            >
               {t('home.seeAll')}
             </Link>
           </div>
@@ -73,8 +94,13 @@ function Home() {
 
       <section className="mt-12 mb-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-2xl font-bold text-ink">{t('home.freshPicks')}</h2>
-          <Link to="/shop" className="text-sm font-semibold text-leaf-700 hover:underline">
+          <h2 className="font-display text-2xl font-bold text-ink">
+            {t('home.freshPicks')}
+          </h2>
+          <Link
+            to="/shop"
+            className="text-sm font-semibold text-leaf-700 hover:underline"
+          >
             {t('home.seeAll')}
           </Link>
         </div>
