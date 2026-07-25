@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listOrders, updateOrderStatus, updateOrderTracking, deleteOrder } from "@/data/orders";
-import { cn } from "@/lib/utils";
+import { cn, formatShippingAddress } from "@/lib/utils";
 import { toast } from "sonner";
 import { MapPin, Trash2, FileDown } from "lucide-react";
 import { downloadInvoice } from "@/lib/invoice";
@@ -97,7 +97,7 @@ function OrdersAdmin() {
                   ) : (
                     (o.address || o.city || o.postal_code) && (
                       <div className="text-xs text-ink-soft">
-                        {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}
+                        {formatShippingAddress(o.address, o.city, o.postal_code)}
                       </div>
                     )
                   )}
