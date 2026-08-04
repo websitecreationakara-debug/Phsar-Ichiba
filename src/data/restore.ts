@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 import { requireSuperAdmin } from "./_auth";
+import { logAdminAction } from "@/lib/audit";
 
 // Cloudflare account/database identifiers — stable, matches wrangler.jsonc.
 const ACCOUNT_ID = "a83815bcb10b7056fc34d19071b3b3eb";
@@ -25,7 +26,7 @@ export const restoreDatabase = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data }) => {
-    await requireSuperAdmin();
+    const user = await requireSuperAdmin();
 
     const confirm = data.get("confirm");
     if (confirm !== "RESTORE") {
@@ -35,6 +36,11 @@ export const restoreDatabase = createServerFn({ method: "POST" })
     const file = data.get("file");
     if (!(file instanceof File)) throw new Error("No backup file provided");
     if (!file.name.endsWith(".sql")) throw new Error("Expected a .sql backup file");
+
+    // Log before running the restore itself, so an attempted-but-failed
+    // restore is still recorded — this is the single most destructive action
+    // in the app and previously had zero audit trail.
+    await logAdminAction(user, "db_restore", { fileName: file.name, fileSizeBytes: file.size });
 
     const sql = await file.text();
     if (!sql.trim()) throw new Error("Uploaded file is empty");

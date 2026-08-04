@@ -10,6 +10,8 @@ import { ac, roles } from "@/lib/admin-permissions";
 import { isLegacyHash, verifyLegacyPassword } from "@/lib/legacy-password";
 import { emailShell } from "@/lib/notify";
 import { withBase } from "@/lib/base-path";
+import { logAdminLogin } from "@/lib/audit";
+import type { SessionUser } from "@/data/_auth";
 
 const env: Record<string, string | undefined> = (() => {
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
@@ -126,22 +128,43 @@ export function getAuth() {
       // Runs only when a session was actually created (password was correct);
       // modern (non-legacy) hashes are left untouched, so it never loops.
       after: createAuthMiddleware(async (ctx) => {
-        if (ctx.path !== "/sign-in/email") return;
         const session = ctx.context.newSession;
-        if (!session?.user) return;
-        const password = (ctx.body as { password?: unknown } | undefined)?.password;
-        if (typeof password !== "string" || !password) return;
-        try {
-          const accounts = await ctx.context.internalAdapter.findAccounts(session.user.id);
-          const credential = accounts.find(
-            (a: { providerId?: string; password?: string | null }) => a.providerId === "credential",
-          );
-          if (!credential?.password || !isLegacyHash(credential.password)) return;
-          const newHash = await ctx.context.password.hash(password);
-          await ctx.context.internalAdapter.updatePassword(session.user.id, newHash);
-        } catch (e) {
-          // Never let a hash-upgrade failure break an otherwise-successful login.
-          console.error("[auth] legacy hash upgrade failed", e);
+
+        // Transparent password-hash upgrade (email sign-in only).
+        if (ctx.path === "/sign-in/email" && session?.user) {
+          const password = (ctx.body as { password?: unknown } | undefined)?.password;
+          if (typeof password === "string" && password) {
+            try {
+              const accounts = await ctx.context.internalAdapter.findAccounts(session.user.id);
+              const credential = accounts.find(
+                (a: { providerId?: string; password?: string | null }) => a.providerId === "credential",
+              );
+              if (credential?.password && isLegacyHash(credential.password)) {
+                const newHash = await ctx.context.password.hash(password);
+                await ctx.context.internalAdapter.updatePassword(session.user.id, newHash);
+              }
+            } catch (e) {
+              // Never let a hash-upgrade failure break an otherwise-successful login.
+              console.error("[auth] legacy hash upgrade failed", e);
+            }
+          }
+        }
+
+        // Security dashboard: log every staff/admin login (any path — covers
+        // email sign-in, 2FA verification, social login — not just customer
+        // accounts, which always have role "user" and are excluded). Must be
+        // awaited: Cloudflare Workers can terminate the execution context the
+        // instant the response is sent, killing an unawaited fire-and-forget
+        // call before its DB write/fetch finish.
+        if (session?.user) {
+          const role = (session.user as { role?: string | null }).role;
+          if (role && role !== "user") {
+            try {
+              await logAdminLogin(session.user as SessionUser);
+            } catch (e) {
+              console.error("[login-hook] logAdminLogin failed", e);
+            }
+          }
         }
       }),
     },

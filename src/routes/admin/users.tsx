@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
+import { recordAdminAction } from "@/data/audit";
 import { useAuth } from "@/hooks/use-auth";
 import { Modal } from "@/components/admin/modal";
 import { Ban, Check, KeyRound, MailCheck, MailX, Search, Trash2, UserPlus } from "lucide-react";
@@ -130,8 +131,12 @@ function UsersAdmin() {
   };
 
   const changeRole = async (userId: string, role: string) => {
+    const target = users.find((u) => u.id === userId);
     const res = await authClient.admin.setRole({ userId, role: role as "user" | "admin" });
     if (res.error) return toast.error(res.error.message ?? "Failed to change role");
+    recordAdminAction({
+      data: { action: "role_change", detail: { targetUserId: userId, targetEmail: target?.email, oldRole: target?.role, newRole: role } },
+    }).catch(() => {});
     toast.success("Role updated");
     refresh();
   };
@@ -141,6 +146,9 @@ function UsersAdmin() {
       ? await authClient.admin.unbanUser({ userId: u.id })
       : await authClient.admin.banUser({ userId: u.id });
     if (res.error) return toast.error(res.error.message ?? "Failed to update");
+    recordAdminAction({
+      data: { action: "user_ban", detail: { targetUserId: u.id, targetEmail: u.email, banned: !u.banned } },
+    }).catch(() => {});
     toast.success(u.banned ? "User unbanned" : "User banned");
     refresh();
   };
@@ -156,6 +164,9 @@ function UsersAdmin() {
     if (!confirm(`Delete ${u.email}? This cannot be undone.`)) return;
     const res = await authClient.admin.removeUser({ userId: u.id });
     if (res.error) return toast.error(res.error.message ?? "Failed to delete");
+    recordAdminAction({
+      data: { action: "user_delete", detail: { targetUserId: u.id, targetEmail: u.email, role: u.role } },
+    }).catch(() => {});
     toast.success("User deleted");
     refresh();
   };
