@@ -1,6 +1,6 @@
 # Weekly backup for Phsar Ichiba: exports the production D1 database and
 # snapshots the source tree to D:\Backups\phsar-ichiba\, uploads both to
-# Google Drive (gdrive:Phsar Ichiba) via rclone, then prunes local backups
+# Google Drive (gdrive:Backups/Phsar Ichiba) via rclone, then prunes local backups
 # older than $RetentionWeeks. Registered as a Windows Scheduled Task - see
 # scripts/register-weekly-backup.ps1.
 
@@ -11,7 +11,7 @@ $ProjectDir = "D:\Ecommerce\Phsar Ichiba"
 $BackupDir = "D:\Backups\phsar-ichiba"
 $RetentionWeeks = 8
 $Rclone = "C:\Users\Demo\.project-tracker\bin\rclone.exe"
-$DriveRemote = "gdrive:Phsar Ichiba"
+$DriveRemote = "gdrive:Backups/Phsar Ichiba"
 $Date = Get-Date -Format "yyyy-MM-dd"
 $LogFile = Join-Path $BackupDir "backup.log"
 

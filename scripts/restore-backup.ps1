@@ -1,4 +1,4 @@
-# Restores a Phsar Ichiba backup from Google Drive (gdrive:Phsar Ichiba).
+# Restores a Phsar Ichiba backup from Google Drive (gdrive:Backups/Phsar Ichiba).
 #
 # Usage:
 #   .\restore-backup.ps1                  # downloads the most recent backup
@@ -17,7 +17,7 @@ $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $Rclone = "C:\Users\Demo\.project-tracker\bin\rclone.exe"
-$DriveRemote = "gdrive:Phsar Ichiba"
+$DriveRemote = "gdrive:Backups/Phsar Ichiba"
 $RestoreDir = "D:\Backups\phsar-ichiba\restore"
 
 if (-not $Date) {

@@ -15,7 +15,7 @@ $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $Rclone = "C:\Users\Demo\.project-tracker\bin\rclone.exe"
-$DriveRemote = "gdrive:Phsar Ichiba"
+$DriveRemote = "gdrive:Backups/Phsar Ichiba"
 $RestoreDir = "D:\Backups\phsar-ichiba\restore"
 $ProjectDir = "D:\Ecommerce\Phsar Ichiba"
 
