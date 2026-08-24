@@ -785,6 +785,7 @@ function ProductsAdmin() {
                   <input
                     type="number"
                     min="0"
+                    step="0.01"
                     placeholder="Unlimited"
                     value={form.stock}
                     onChange={(e) =>
@@ -979,6 +980,7 @@ function ProductsAdmin() {
                       <input
                         type="number"
                         min="0"
+                        step="0.01"
                         placeholder="∞"
                         value={v.stock}
                         onChange={(e) =>
