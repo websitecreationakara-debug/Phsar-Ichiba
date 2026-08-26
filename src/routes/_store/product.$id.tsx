@@ -11,6 +11,7 @@ import { useI18n, localizedCategoryName, localizedProductTitle } from '@/lib/i18
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice, cn } from '@/lib/utils'
 import { withBase } from '@/lib/base-path'
+import { hasValidPrice } from '@/lib/variants'
 import type { ProductVariation } from '@/lib/types'
 
 export const Route = createFileRoute('/_store/product/$id')({ component: ProductDetail })
@@ -30,12 +31,17 @@ function ProductDetail() {
   const [variation, setVariation] = useState<ProductVariation | null>(null)
 
   // Variable products have no price/stock of their own — auto-select a
-  // variation (preferring one still in stock) so the page shows a real price
-  // instead of $0.00 by default, rather than forcing a manual pick first.
+  // variation (preferring one in stock AND actually priced) so the page
+  // shows a real price instead of $0.00 by default, rather than forcing a
+  // manual pick first. Skips variations an admin added but never gave a
+  // Sale Price yet.
   useEffect(() => {
     if (product?.type === 'variable' && !variation && variations && variations.length > 0) {
-      const inStock = variations.find((v) => v.stock === null || v.stock > 0)
-      setVariation(inStock ?? variations[0])
+      const inStockAndPriced = variations.find(
+        (v) => (v.stock === null || v.stock > 0) && hasValidPrice(v),
+      )
+      const priced = variations.find(hasValidPrice)
+      setVariation(inStockAndPriced ?? priced ?? variations[0])
     }
   }, [product?.type, variations, variation])
 
@@ -80,6 +86,9 @@ function ProductDetail() {
       ? variation.stock !== null && variation.stock <= 0
       : false
     : product.stock !== null && product.stock <= 0
+  // A variation the admin added but never priced (0, no Sale Price) — block
+  // the sale rather than let it check out for free.
+  const unpriced = isVariable && !!variation && !hasValidPrice(variation)
   const wished = has(product.id)
   const avg = rating?.average
   const count = rating?.count ?? 0
@@ -131,7 +140,7 @@ function ProductDetail() {
 
           <div className="mt-4 flex items-baseline gap-2">
             <span className="font-display text-3xl font-bold text-leaf-700">
-              {formatPrice(effectivePrice)}
+              {unpriced ? t('product.priceUnavailable') : formatPrice(effectivePrice)}
             </span>
             {onSale && (
               <span className="text-base text-ink-soft/60 line-through">{formatPrice(basePrice)}</span>
@@ -165,9 +174,11 @@ function ProductDetail() {
                       variation?.id === v.id
                         ? 'border-leaf-600 bg-leaf-600 text-white'
                         : 'border-leaf-200 text-ink hover:border-leaf-400',
+                      !hasValidPrice(v) && 'opacity-40',
                     )}
                   >
                     {v.weight}
+                    {!hasValidPrice(v) && ` (${t('product.priceUnavailable')})`}
                   </button>
                 ))}
               </div>
@@ -197,7 +208,7 @@ function ProductDetail() {
 
             <button
               type="button"
-              disabled={outOfStock || (isVariable && !variation)}
+              disabled={outOfStock || (isVariable && !variation) || unpriced}
               onClick={() => add(product, variation, qty)}
               className="flex-1 rounded-full bg-leaf-600 py-3 text-sm font-bold text-white transition hover:bg-leaf-700 disabled:cursor-not-allowed disabled:bg-ink-soft/30"
             >
@@ -205,7 +216,9 @@ function ProductDetail() {
                 ? t('product.soldOut')
                 : isVariable && !variation
                   ? t('product.selectSize')
-                  : t('product.addToBasket')}
+                  : unpriced
+                    ? t('product.priceUnavailable')
+                    : t('product.addToBasket')}
             </button>
 
             <button
