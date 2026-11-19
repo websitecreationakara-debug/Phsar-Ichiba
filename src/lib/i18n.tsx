@@ -37,6 +37,15 @@ export function localizedProductTitle(
   return locale === "en" ? p.title_en || p.title : p.title;
 }
 
+// Descriptions follow the same fallback: English mode shows `description_en`
+// when the admin has set (or auto-translated) one, otherwise the Japanese text.
+export function localizedProductDescription(
+  p: { description: string | null; description_en?: string | null },
+  locale: Locale,
+): string | null {
+  return locale === "en" ? p.description_en || p.description : p.description;
+}
+
 const ja = {
   "root.title": "プサール・イチバ — フレッシュマーケット",
   "root.description": "新鮮な野菜・果物・日用食品を毎日収穫し、迅速にお届けします。",

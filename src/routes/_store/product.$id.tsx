@@ -7,7 +7,7 @@ import { getProductRating, rateProduct } from '@/data/ratings'
 import { useCart } from '@/hooks/use-cart'
 import { useWishlist } from '@/hooks/use-wishlist'
 import { useAuth } from '@/hooks/use-auth'
-import { useI18n, localizedCategoryName, localizedProductTitle } from '@/lib/i18n'
+import { useI18n, localizedCategoryName, localizedProductTitle, localizedProductDescription } from '@/lib/i18n'
 import { categoryArt } from '@/lib/category-art'
 import { formatPrice, cn } from '@/lib/utils'
 import { withBase } from '@/lib/base-path'
@@ -74,6 +74,7 @@ function ProductDetail() {
   const category = categories?.find((c) => c.id === product.category_id)
   const { icon: Icon, gradient } = categoryArt(category?.slug)
   const title = localizedProductTitle(product, locale)
+  const description = localizedProductDescription(product, locale)
 
   const isVariable = product.type === 'variable' && (variations?.length ?? 0) > 0
   const effectivePrice = variation
@@ -150,13 +151,13 @@ function ProductDetail() {
             )}
           </div>
 
-          {product.description && (
+          {description && (
             // Descriptions are admin-authored HTML (imported from the old
             // WooCommerce catalog, some with real formatting) — render as
             // markup, not escaped text, or tags show up literally on screen.
             <div
               className="prose-sm mt-4 max-w-none text-sm leading-relaxed text-ink-soft [&_p]:mb-2 [&_p:last-child]:mb-0"
-              dangerouslySetInnerHTML={{ __html: product.description }}
+              dangerouslySetInnerHTML={{ __html: description }}
             />
           )}
 
