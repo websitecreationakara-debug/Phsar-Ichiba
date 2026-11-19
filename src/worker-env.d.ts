@@ -3,6 +3,8 @@
 // This augments the same Cloudflare.Env interface that file declares.
 declare namespace Cloudflare {
   interface Env {
+    // Workers AI binding (see wrangler.jsonc) — used for product translation.
+    AI: Ai;
     BETTER_AUTH_SECRET: string;
     BETTER_AUTH_URL?: string;
     RESEND_API_KEY: string;

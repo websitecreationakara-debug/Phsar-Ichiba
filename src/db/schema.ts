@@ -75,6 +75,9 @@ export const products = sqliteTable('products', {
   // admin Orders page) — the storefront itself stays on `title` (Japanese).
   title_en: text('title_en'),
   description: text('description'),
+  // English description shown on the storefront in English mode (falls back to
+  // `description` when unset). Can be auto-filled from the admin product form.
+  description_en: text('description_en'),
   price: real('price').notNull().default(0),
   sale_price: real('sale_price'),
   category_id: text('category_id').references(() => categories.id, {

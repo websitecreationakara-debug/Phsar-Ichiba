@@ -19,6 +19,7 @@ import {
   PanelLeftOpen,
   ShieldCheck,
   DatabaseBackup,
+  Languages,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { withBase } from "@/lib/base-path";
@@ -38,6 +39,7 @@ const nav = [
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },
+  { to: "/admin/translations", label: "Translations", icon: Languages },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/settings", label: "Settings", icon: Settings },
@@ -88,12 +90,12 @@ function AdminLayout() {
   // Sales can only ever be on the Orders page.
   const salesBlocked = isSales && !isAdmin && !path.startsWith("/admin/orders");
   // Marketing is scoped to the catalog/marketing sections.
-  const marketingPaths = ["/admin/products", "/admin/marketing", "/admin/categories", "/admin/media"];
+  const marketingPaths = ["/admin/products", "/admin/marketing", "/admin/categories", "/admin/translations", "/admin/media"];
   const marketingBlocked =
     isMarketing && !isAdmin && path !== "/admin" && !marketingPaths.some((p) => path.startsWith(p));
   // Product manager is scoped to just products/categories/media — no marketing
   // (promotions/promo codes), no dashboard, no orders.
-  const productManagerPaths = ["/admin/products", "/admin/categories", "/admin/media"];
+  const productManagerPaths = ["/admin/products", "/admin/categories", "/admin/translations", "/admin/media"];
   const productManagerBlocked =
     isProductManager && !isAdmin && !productManagerPaths.some((p) => path.startsWith(p));
   // Manager is a full admin in the dashboard, with two exceptions enforced

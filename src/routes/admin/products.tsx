@@ -15,6 +15,7 @@ import {
   saveVariations,
   setProductStatus,
 } from '@/data/products'
+import { translateToEnglish } from '@/data/translate'
 import { listMedia, uploadMedia } from '@/data/media'
 import { compressImage } from '@/lib/image'
 import { groupVariations } from '@/lib/variants'
@@ -35,6 +36,7 @@ import {
   GripVertical,
   Eye,
   EyeOff,
+  Languages,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -50,6 +52,7 @@ const empty = {
   title: '',
   title_en: '',
   description: '',
+  description_en: '',
   price: '0',
   sale_price: '',
   category_id: '',
@@ -85,16 +88,51 @@ const inputCls =
   'w-full rounded-lg border border-leaf-200 px-3 py-2 text-sm text-ink outline-none focus:border-leaf-500'
 const labelCls = 'mb-1 block text-sm font-medium text-ink'
 
+function TranslateButton({
+  busy,
+  disabled,
+  onClick,
+}: {
+  busy: boolean
+  disabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="mb-1 inline-flex items-center gap-1 rounded-lg border border-leaf-200 px-2 py-1 text-xs font-semibold text-leaf-700 transition-colors hover:bg-leaf-50 disabled:opacity-50"
+    >
+      {busy ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : (
+        <Languages className="h-3.5 w-3.5" />
+      )}
+      {busy ? 'Translating…' : 'Translate from Japanese'}
+    </button>
+  )
+}
+
 function Field({
   label,
+  action,
   children,
 }: {
   label: string
+  action?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
     <div>
-      <label className={labelCls}>{label}</label>
+      {action ? (
+        <div className="flex items-end justify-between gap-2">
+          <label className={labelCls}>{label}</label>
+          {action}
+        </div>
+      ) : (
+        <label className={labelCls}>{label}</label>
+      )}
       {children}
     </div>
   )
@@ -160,6 +198,7 @@ function ProductsAdmin() {
   const isVariable = form.type === 'variable'
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [translating, setTranslating] = useState<'title' | 'description' | null>(null)
   const [picker, setPicker] = useState(false)
   const [query, setQuery] = useState('')
   const [catFilter, setCatFilter] = useState('all')
@@ -262,6 +301,7 @@ function ProductsAdmin() {
       title: p.title,
       title_en: p.title_en ?? '',
       description: p.description ?? '',
+      description_en: p.description_en ?? '',
       price: String(p.price),
       sale_price: p.sale_price != null ? String(p.sale_price) : '',
       category_id: p.category_id ?? '',
@@ -307,6 +347,32 @@ function ProductsAdmin() {
         sort_order: i,
       }))
 
+  // Fills the English field from the Japanese one via Workers AI. The result
+  // lands in the form only — the admin can edit it, then Save as usual.
+  const translate = async (kind: 'title' | 'description') => {
+    const source = kind === 'title' ? form.title : form.description
+    if (!source.trim()) {
+      toast.error(
+        `Enter the Japanese ${kind === 'title' ? 'title' : 'description'} first`,
+      )
+      return
+    }
+    setTranslating(kind)
+    try {
+      const { text } = await translateToEnglish({ data: { text: source, kind } })
+      setForm((f) =>
+        kind === 'title'
+          ? { ...f, title_en: text }
+          : { ...f, description_en: text },
+      )
+      toast.success('Translated — review it, then save')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Translation failed')
+    } finally {
+      setTranslating(null)
+    }
+  }
+
   const save = async (e: React.FormEvent) => {
     e.preventDefault()
     const variable = form.type === 'variable'
@@ -314,6 +380,7 @@ function ProductsAdmin() {
       title: form.title,
       title_en: form.title_en.trim() || null,
       description: form.description || null,
+      description_en: form.description_en.trim() || null,
       price: variable ? 0 : Number(form.price),
       sale_price: variable || !form.sale_price ? null : Number(form.sale_price),
       category_id: form.category_id || null,
@@ -384,6 +451,7 @@ function ProductsAdmin() {
           title: `${p.title} (Copy)`,
           title_en: p.title_en,
           description: p.description,
+          description_en: p.description_en,
           price: p.price,
           sale_price: p.sale_price,
           category_id: p.category_id,
@@ -667,7 +735,7 @@ function ProductsAdmin() {
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
         <div className="flex items-center gap-2 text-ink-soft">
           <span>Show</span>
           <select
@@ -687,9 +755,6 @@ function ProductsAdmin() {
           <span>per page</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-ink-soft">
-            {rangeStart}–{rangeEnd} of {filtered.length}
-          </span>
           <div className="flex gap-1">
             <BtnIcon
               className="border border-leaf-200 disabled:opacity-40"
@@ -708,6 +773,9 @@ function ProductsAdmin() {
               <ChevronRight className="h-4 w-4" />
             </BtnIcon>
           </div>
+          <span className="text-ink-soft">
+            {rangeStart}–{rangeEnd} of {filtered.length}
+          </span>
         </div>
       </div>
 
@@ -726,7 +794,16 @@ function ProductsAdmin() {
               className={inputCls}
             />
           </Field>
-          <Field label="English title (for staff — order alerts, admin lists)">
+          <Field
+            label="English title (shown on the storefront in English)"
+            action={
+              <TranslateButton
+                busy={translating === 'title'}
+                disabled={translating !== null}
+                onClick={() => translate('title')}
+              />
+            }
+          >
             <input
               value={form.title_en}
               onChange={(e) => setForm({ ...form, title_en: e.target.value })}
@@ -740,6 +817,25 @@ function ProductsAdmin() {
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
               }
+              className={cn(inputCls, 'min-h-20')}
+            />
+          </Field>
+          <Field
+            label="English description (shown on the storefront in English)"
+            action={
+              <TranslateButton
+                busy={translating === 'description'}
+                disabled={translating !== null}
+                onClick={() => translate('description')}
+              />
+            }
+          >
+            <textarea
+              value={form.description_en}
+              onChange={(e) =>
+                setForm({ ...form, description_en: e.target.value })
+              }
+              placeholder="Optional — leave empty to show the Japanese description"
               className={cn(inputCls, 'min-h-20')}
             />
           </Field>

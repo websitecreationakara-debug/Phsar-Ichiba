@@ -10,6 +10,7 @@ type ProductInput = {
   title: string
   title_en?: string | null
   description: string | null
+  description_en?: string | null
   price: number
   sale_price: number | null
   category_id: string | null
