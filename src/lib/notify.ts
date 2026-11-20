@@ -32,34 +32,40 @@ export type OrderNotification = {
 // datetime-local strings ("2026-07-01T14:00") shown as "2026-07-01 14:00".
 const formatSchedule = (s?: string | null): string | null => (s ? s.replace("T", " ") : null);
 
-// Order placement time shown on the ASAP note, in the store's local timezone
-// (Cambodia) regardless of what timezone the worker/server happens to run in.
-const formatOrderTime = (iso?: string | null): string => {
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Order placement time shown on "Receive order", e.g. "11:00am, 20 Nov 2026" —
+// in the store's local timezone (Cambodia) regardless of what timezone the
+// worker/server happens to run in.
+const formatInstantHuman = (iso?: string | null): string => {
   const d = iso ? new Date(iso) : new Date();
-  const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Phnom_Penh" }).format(d);
-  const parts = new Intl.DateTimeFormat("en-GB", {
+  const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Phnom_Penh",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    hour12: false,
+    hour12: true,
   }).formatToParts(d);
-  const hour24 = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
-  const minute = parts.find((p) => p.type === "minute")?.value ?? "00";
-  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-  return `${date}, ${hour12}:${minute}`;
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("hour")}:${get("minute")}${get("dayPeriod").toLowerCase()}, ${get("day")} ${get("month")} ${get("year")}`;
 };
 
 // scheduled_at is a wall-clock "datetime-local" string with no timezone info
 // (e.g. "2026-11-22T14:00") — it's whatever the customer typed in their own
-// browser, already the store's local time. Reformatted as text only, never
-// run through Date/timeZone conversion, which would misread it as a UTC
-// instant and shift it.
-const formatLocalSlot = (s: string): string => {
+// browser, already the store's local time. Parsed as text only, never run
+// through Date/timeZone conversion, which would misread it as a UTC instant
+// and shift it. Same "2:00pm, 22 Nov 2026" style as formatInstantHuman.
+const formatLocalSlotHuman = (s: string): string => {
   const [datePart, timePart = "00:00"] = s.split("T");
-  const [hStr, mStr = "00"] = timePart.split(":");
+  const [yStr, mStr, dStr] = datePart.split("-");
+  const [hStr, minStr = "00"] = timePart.split(":");
   const hour24 = Number(hStr) || 0;
   const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-  return `${datePart}, ${hour12}:${mStr}`;
+  const dayPeriod = hour24 < 12 ? "am" : "pm";
+  const month = MONTHS[Number(mStr) - 1] ?? mStr;
+  return `${hour12}:${minStr}${dayPeriod}, ${Number(dStr)} ${month} ${yStr}`;
 };
 
 const env: Record<string, string | undefined> = (() => {
@@ -156,9 +162,11 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   const textSummary = [
     `Order #${short}`,
     `Customer: ${order.customer_name ?? "—"} (${order.customer_email ?? "—"})`,
-    ...(isAsap ? [`Delivery time: This order As Soon As Possible (${formatOrderTime(order.created_at)})`] : []),
-    ...(!isPickup && order.scheduled_at
-      ? [`Delivery time: This order is scheduled for (${formatLocalSlot(order.scheduled_at)})`]
+    ...(!isPickup
+      ? [
+          `Receive order: ${formatInstantHuman(order.created_at)}`,
+          `Delivery time: ${isAsap ? "As soon as possible" : formatLocalSlotHuman(order.scheduled_at!)}`,
+        ]
       : []),
     `Phone: ${order.customer_phone ?? "—"}`,
     ...(order.customer_number ? [`Customer #: ${order.customer_number}`] : []),
