@@ -47,6 +47,43 @@ const parseItems = (row: typeof orders.$inferSelect) => ({
   items: JSON.parse(row.items || "[]") as OrderItem[],
 });
 
+// Restores (sign=1) or re-deducts (sign=-1) stock for an order's line items —
+// used when an order is cancelled/un-cancelled or deleted. Mirrors the id
+// lookup in createOrder: an id is either a product or a product_variation.
+// Untracked items (stock === null) are skipped, same as the initial deduction.
+async function adjustStock(db: ReturnType<typeof getDb>, items: OrderItem[], sign: 1 | -1) {
+  const neededById = new Map<string, number>();
+  for (const i of items) neededById.set(i.id, (neededById.get(i.id) ?? 0) + i.qty);
+  if (neededById.size === 0) return;
+
+  const ids = [...neededById.keys()];
+  const [prodRows, varRows] = await Promise.all([
+    db
+      .select({ id: products.id, stock: products.stock })
+      .from(products)
+      .where(inArray(products.id, ids)),
+    db
+      .select({ id: product_variations.id, stock: product_variations.stock })
+      .from(product_variations)
+      .where(inArray(product_variations.id, ids)),
+  ]);
+  const productIdSet = new Set(prodRows.map((p) => p.id));
+  const stockById = new Map<string, number | null>();
+  for (const p of prodRows) stockById.set(p.id, p.stock);
+  for (const v of varRows) stockById.set(v.id, v.stock);
+
+  await Promise.all(
+    [...neededById].map(([id, qty]) => {
+      const stock = stockById.get(id);
+      if (stock == null) return null;
+      const next = Math.max(0, stock + sign * qty);
+      return productIdSet.has(id)
+        ? db.update(products).set({ stock: next }).where(eq(products.id, id))
+        : db.update(product_variations).set({ stock: next }).where(eq(product_variations.id, id));
+    }),
+  );
+}
+
 // Alert the store (Telegram + email) that a confirmed order is ready to fulfil.
 // Called immediately for COD, but deferred to the payment-confirmed path for
 // KHQR so the store is never pinged for an order that was never paid.
@@ -66,6 +103,7 @@ async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderIt
     location_lng: row.location_lng,
     scheduled_at: row.scheduled_at,
     fulfillment_method: row.fulfillment_method,
+    created_at: row.created_at,
   });
 }
 
@@ -328,6 +366,15 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     if (!before) throw new Error("Order not found");
     await db.update(orders).set({ status: data.status }).where(eq(orders.id, data.id));
 
+    // Cancelling returns stock to inventory; reinstating a cancelled order back
+    // to any other status takes it back out. Gated on the actual transition so
+    // toggling cancelled on/off repeatedly can't double-credit or double-deduct.
+    if (data.status === "cancelled" && before.status !== "cancelled") {
+      await adjustStock(db, JSON.parse(before.items || "[]") as OrderItem[], 1);
+    } else if (data.status !== "cancelled" && before.status === "cancelled") {
+      await adjustStock(db, JSON.parse(before.items || "[]") as OrderItem[], -1);
+    }
+
     // Notify on the transition into "shipped" — but only if a tracking link is
     // already set. Normally the link is added after shipping (the admin input
     // only appears once shipped), so the email is sent from updateOrderTracking
@@ -374,6 +421,12 @@ export const deleteOrder = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
     await requireAdmin();
-    await getDb().delete(orders).where(eq(orders.id, data.id));
+    const db = getDb();
+    const [before] = await db.select().from(orders).where(eq(orders.id, data.id));
+    // Return stock unless a prior cancellation already returned it.
+    if (before && before.status !== "cancelled") {
+      await adjustStock(db, JSON.parse(before.items || "[]") as OrderItem[], 1);
+    }
+    await db.delete(orders).where(eq(orders.id, data.id));
     return { ok: true };
   });

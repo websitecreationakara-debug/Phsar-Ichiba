@@ -26,10 +26,41 @@ export type OrderNotification = {
   postal_code?: string | null;
   scheduled_at?: string | null;
   fulfillment_method?: string | null;
+  created_at?: string | null;
 };
 
 // datetime-local strings ("2026-07-01T14:00") shown as "2026-07-01 14:00".
 const formatSchedule = (s?: string | null): string | null => (s ? s.replace("T", " ") : null);
+
+// Order placement time shown on the ASAP note, in the store's local timezone
+// (Cambodia) regardless of what timezone the worker/server happens to run in.
+const formatOrderTime = (iso?: string | null): string => {
+  const d = iso ? new Date(iso) : new Date();
+  const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Phnom_Penh" }).format(d);
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Phnom_Penh",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const hour24 = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const minute = parts.find((p) => p.type === "minute")?.value ?? "00";
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  return `${date}, ${hour12}:${minute}`;
+};
+
+// scheduled_at is a wall-clock "datetime-local" string with no timezone info
+// (e.g. "2026-11-22T14:00") — it's whatever the customer typed in their own
+// browser, already the store's local time. Reformatted as text only, never
+// run through Date/timeZone conversion, which would misread it as a UTC
+// instant and shift it.
+const formatLocalSlot = (s: string): string => {
+  const [datePart, timePart = "00:00"] = s.split("T");
+  const [hStr, mStr = "00"] = timePart.split(":");
+  const hour24 = Number(hStr) || 0;
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  return `${datePart}, ${hour12}:${mStr}`;
+};
 
 const env: Record<string, string | undefined> = (() => {
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
@@ -119,15 +150,20 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   const shipTo = formatShippingAddress(order.address, order.city, order.postal_code);
   const mapLink = mapsUrl(order);
   const schedule = formatSchedule(order.scheduled_at);
+  const isAsap = !isPickup && !order.scheduled_at;
   const subtotal = orderSubtotal(order);
   const shipping = orderShipping(order);
   const textSummary = [
     `Order #${short}`,
     `Customer: ${order.customer_name ?? "—"} (${order.customer_email ?? "—"})`,
+    ...(isAsap ? [`Delivery time: This order As Soon As Possible (${formatOrderTime(order.created_at)})`] : []),
+    ...(!isPickup && order.scheduled_at
+      ? [`Delivery time: This order is scheduled for (${formatLocalSlot(order.scheduled_at)})`]
+      : []),
     `Phone: ${order.customer_phone ?? "—"}`,
     ...(order.customer_number ? [`Customer #: ${order.customer_number}`] : []),
     isPickup ? "🏪 Store pickup" : `Deliver to: ${shipTo || "—"}`,
-    ...(schedule ? [`🗓️ ${isPickup ? "Pickup" : "Scheduled"}: ${schedule}`] : []),
+    ...(isPickup && schedule ? [`🗓️ Pickup: ${schedule}`] : []),
     ...(!isPickup && mapLink ? [`📍 Map: ${mapLink}`] : []),
     "Items:",
     ...order.items.map((i) => `  ${i.qty}× ${itemLabel(i, true)} — $${(i.price * i.qty).toFixed(2)}`),
